@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>IGV Portal</title>
+    <!-- IGV Portal-->
+    <script src="https://cdn.jsdelivr.net/npm/igv@2.13.3/dist/igv.min.js"></script>
+    <!-- JQuerry -->
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <!--D3-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.6.1/d3.js"
+        integrity="sha512-pJbXh9nxFa1tkmI3Gxiay8+mKTW+QvM8aMrTSR4xcw671sTWkvlHBgnyqXCRr1HFkE0YwhoRZwcdUFFxP4D9Lg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossorigin="anonymous">
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-A3rJD856KowSb7dwlZdYEkO39Gagi7vIsF0jrRAoQmDKKtQBHUuLZ9AsSv4jD4Xa"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.5/dist/umd/popper.min.js"
+        integrity="sha384-Xe+8cL9oJa6tN/veChSP7q+mnSPaj5Bcu9mPX5F5xIGE0DVittaqT5lorf0EI7Vk"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.min.js"
+        integrity="sha384-ODmDIVzN+pFdexxHEHFBQH3/9/vQ9uori45z4JjnFsRydbmQbmL5t1tQ0culUzyK"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/BrowserFS/2.0.0/browserfs.min.js"
+        integrity="sha512-mz0EI+Ay1uIJP7rZEX8C/JlTAcHRIQ8Sny4vxmmj8MSzDJgG9NxxY2pUmOGv1lO7imFIFMyjjCzEXEywNgaUdQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!--Select2 boxes-->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!--My Script-->
+    <script type="text/javascript" src="script.js" defer></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg" style="background-color: #e3f2fd;">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">Tiling Data Vis Portal</a>
+        </div>
+    </nav>
+
+
+    <!-- Pattern SVGs-->
+    <svg height="10" width="10" xmlns="http://www.w3.org/2000/svg" version="1.1">
+        <defs>
+            <pattern id="diagonal-stripe-2" patternUnits="userSpaceOnUse" width="10" height="10">
+                <image
+                    xlink:href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScxMCcgaGVpZ2h0PScxMCc+CiAgPHJlY3Qgd2lkdGg9JzEwJyBoZWlnaHQ9JzEwJyBmaWxsPSd3aGl0ZScvPgogIDxwYXRoIGQ9J00tMSwxIGwyLC0yCiAgICAgICAgICAgTTAsMTAgbDEwLC0xMAogICAgICAgICAgIE05LDExIGwyLC0yJyBzdHJva2U9J2JsYWNrJyBzdHJva2Utd2lkdGg9JzInLz4KPC9zdmc+"
+                    x="0" y="0" width="10" height="10"> </image>
+            </pattern>
+        </defs>
+    </svg>
+    <svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" version="1.1"
+        xmlns:xlink="http://www.w3.org/1999/xlink">
+        <defs>
+            <pattern id="hash4_4" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="4" height="8" transform="translate(0,0)" fill="blue"></rect>
+            </pattern>
+        </defs>
+        <circle cx="60" cy="60" r="50" fill="url(#hash4_4)" />
+    </svg>
+    <!-- <button class="btn btn-primary" onclick="sortCount()">Sort by Count</button>
+    <button class="btn btn-primary" onclick="sortCoverage()">Sort by Coverage</button> -->
+    <p>Sort By: </p>
+    <select id="sortBySelect">
+        <option value="count" selected>Count</option>
+        <option value="coverage">Coverage</option>
+    </select>
+
+    <p>Show first: </p>
+    <select id="showFirstSelect">
+        <option value="-1" selected>All</option>
+        <option value="20">20</option>
+        <option value="50">50</option>
+
+    </select>
+
+
+    <!-- Create a div where the graph will take place -->
+    <div id="my_dataviz">
+
+    </div>
+
+
+    <div id="liveAlertPlaceholder"
+        style="position: fixed; top: 25px;  margin-right: 25%; margin-left: 25%; left: 0; right: 0;"></div>
+
+</body>
+
+</html>
