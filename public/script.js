@@ -28,6 +28,7 @@ d3.json('test_tiles.json').then((data) => {
     // fix tiles section to be array of objects
     data.map((d, i) => {
 
+        // bobs data
         let stringArr = d.tiles.split(',')
         let tileArr = []
         stringArr.forEach((v) => {
@@ -51,6 +52,38 @@ d3.json('test_tiles.json').then((data) => {
         tileCov = Math.round(tileCov * 100) / 100
         d.coverage = tileCov
         d.readNum = i
+
+
+        // // parhams data
+        // // Havent tested it but like lowkey this should work for generating the tiles
+        // d.count = d.Length
+        // d.dist = d.count / 100000 // distribution really doesnt matter
+        // let stringArr = d.String.split(':')
+        // let positionsArr = d.Positions.split(":")
+        // let tileArr = []
+        // stringArr.forEach((v, vi) => {
+        //     let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't' }
+        //     obj.name = v.slice(1)
+        //     obj.start = positionsArr[vi].split('-')[0]
+        //     obj.end = positionsArr[vi].split('-')[1]
+        //     obj.strand = v.slice(0, 1)
+        //     tileArr.push(obj)
+        // })
+        // d.tiles = tileArr
+
+        // // get read coverage
+        // let tileCov = 0
+        // tileArr.forEach((x) => {
+        //     let dif = x.end - x.start
+        //     tileCov += dif
+        // })
+
+        // tileCov = (tileCov / maxReadNum) * 100
+        // tileCov = Math.round(tileCov * 100) / 100
+        // d.coverage = tileCov
+        // d.readNum = i
+
+
     })
 
     // show first (x)
