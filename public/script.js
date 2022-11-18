@@ -16,60 +16,36 @@ function delay(ms) {
 
 // turn full csv to node link json
  
-d3.json('test_tiles.json').then((data) => {
+// d3.json('test_tiles.json').then((data) => { // bobs data
+d3.json('ONT_BC_PH.json').then((data) => { // bobs data
 
 
     // temp stuff for "igv style" barchart
     // let maxReadNum = 2806 // for tiles.json
-    let maxReadNum = 3500 // for test_tiles.json
+    // let maxReadNum = 3500 // for test_tiles.json // bob
+    let maxReadNum = 15000
 
     let data2 = []
 
     // fix tiles section to be array of objects
     data.map((d, i) => {
 
-        // bobs data
-        let stringArr = d.tiles.split(',')
-        let tileArr = []
-        stringArr.forEach((v) => {
-            let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't' }
-            obj.name = v.split('[')[0]
-            obj.start = v.split('[')[1].split(']')[0].split('-')[0]
-            obj.end = v.split('[')[1].split(']')[0].split('-')[1]
-            obj.strand = v.split('(')[1].split(')')[0]
-            tileArr.push(obj)
-        })
-        d.tiles = tileArr
+        // // bobs data
+        // let stringArr = d.tiles.split(',')
 
-        // get read coverage
-        let tileCov = 0
-        tileArr.forEach((x) => {
-            let dif = x.end - x.start
-            tileCov += dif
-        })
-
-        tileCov = (tileCov / maxReadNum) * 100
-        tileCov = Math.round(tileCov * 100) / 100
-        d.coverage = tileCov
-        d.readNum = i
-
-
-        // // parhams data
-        // // Havent tested it but like lowkey this should work for generating the tiles
-        // d.count = d.Length
-        // d.dist = d.count / 100000 // distribution really doesnt matter
-        // let stringArr = d.String.split(':')
-        // let positionsArr = d.Positions.split(":")
         // let tileArr = []
-        // stringArr.forEach((v, vi) => {
-        //     let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't' }
-        //     obj.name = v.slice(1)
-        //     obj.start = positionsArr[vi].split('-')[0]
-        //     obj.end = positionsArr[vi].split('-')[1]
-        //     obj.strand = v.slice(0, 1)
+        // stringArr.forEach((v) => {
+        //     let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't', 'size': 0 }
+        //     obj.name = v.split('[')[0]
+        //     obj.start = v.split('[')[1].split(']')[0].split('-')[0]
+        //     obj.end = v.split('[')[1].split(']')[0].split('-')[1]
+        //     obj.strand = v.split('(')[1].split(')')[0]
+        //     obj.size = obj.end - obj.start
         //     tileArr.push(obj)
         // })
         // d.tiles = tileArr
+        // d.num_tiles = tileArr.length
+        
 
         // // get read coverage
         // let tileCov = 0
@@ -84,53 +60,90 @@ d3.json('test_tiles.json').then((data) => {
         // d.readNum = i
 
 
+        // parhams data
+        // Havent tested it but like lowkey this should work for generating the tiles
+        d.count = d.Length
+        d.dist = d.count / 100000 // distribution really doesnt matter
+        let stringArr = d.String.split(':')
+        let positionsArr = d.Positions.split(":")
+        let tileArr = []
+        let localMaxNum = 0
+        stringArr.forEach((v, vi) => {
+            let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't' }
+            obj.name = v.slice(1) // maybe we should join name and strand tg and set up color map to do different shades for each
+            obj.start = positionsArr[vi].split('-')[0]
+            obj.end = positionsArr[vi].split('-')[1]
+            obj.strand = v.slice(0, 1)
+            tileArr.push(obj)
+
+            if (obj.end > localMaxNum) { localMaxNum = obj.end}
+        })
+        d.tiles = tileArr
+        d.num_tiles = tileArr.length
+
+        // get read coverage
+        let tileCov = 0
+        tileArr.forEach((x) => {
+            let dif = x.end - x.start
+            tileCov += dif
+        })
+
+        tileCov = (tileCov / maxReadNum) * 100
+        tileCov = Math.round(tileCov * 100) / 100
+        d.coverage = tileCov
+        d.readNum = i
+
+        // get maxReadNum //um idk
+        // if (localMaxNum > maxReadNum) { maxReadNum = localMaxNum}
+
+
     })
 
-    // show first (x)
-    d3.select('#showFirstSelect').on("change", async function () {
-        const selectedOption = this.value
-        console.log(selectedOption)
-        switch (selectedOption) {
+    // // show first (x)
+    // d3.select('#showFirstSelect').on("change", async function () {
+    //     const selectedOption = this.value
+    //     console.log(selectedOption)
+    //     switch (selectedOption) {
 
-            case '-1':
-                data = data
-                break;
+    //         case '-1':
+    //             data = data
+    //             break;
 
-            case '20':
-                data = data.slice(0, 20)
-                break;
+    //         case '20':
+    //             data = data.slice(0, 20)
+    //             break;
 
-            case '50':
-                data = data.slice(0, 5)
-                break;
-        }
-        data2 = makeData2()
-        d3.select("#my_dataviz").html("") // empty old and make new chart
-        makePlot()
-    })
+    //         case '50':
+    //             data = data.slice(0, 5)
+    //             break;
+    //     }
+    //     data2 = makeData2()
+    //     d3.select("#my_dataviz").html("") // empty old and make new chart
+    //     makePlot()
+    // })
 
 
-    // sort data when needed 
-    d3.select('#sortBySelect').on("change", async function () {
-        const selectedOption = this.value
-        switch (selectedOption) {
-            case 'count':
-                data.sort((a, b) => {
-                    return d3.descending(a.count, b.count)
-                })
-                break;
+    // // sort data when needed 
+    // d3.select('#sortBySelect').on("change", async function () {
+    //     const selectedOption = this.value
+    //     switch (selectedOption) {
+    //         case 'count':
+    //             data.sort((a, b) => {
+    //                 return d3.descending(a.count, b.count)
+    //             })
+    //             break;
 
-            case 'coverage':
-                data.sort((a, b) => {
-                    return d3.descending(a.coverage, b.coverage)
-                })
-                console.log(data)
-                break;
-        }
-        data2 = makeData2()
-        d3.select("#my_dataviz").html("") // empty old and make new chart
-        makePlot()
-    })
+    //         case 'coverage':
+    //             data.sort((a, b) => {
+    //                 return d3.descending(a.coverage, b.coverage)
+    //             })
+    //             console.log(data)
+    //             break;
+    //     }
+    //     data2 = makeData2()
+    //     d3.select("#my_dataviz").html("") // empty old and make new chart
+    //     makePlot()
+    // })
 
     // fix tiles to each be an independent line
     function makeData2() {
@@ -142,6 +155,7 @@ d3.json('test_tiles.json').then((data) => {
                 let obj = {
                     "id": di,
                     "read_ID": d.readNum,
+                    "num_tiles": d.num_tiles,
                     "count": d.count,
                     "dist": d.dist,
                     "tile": {
@@ -149,7 +163,8 @@ d3.json('test_tiles.json').then((data) => {
                         "name": x.name,
                         "start": x.start,
                         "end": x.end,
-                        "strand": x.strand
+                        "strand": x.strand,
+                        "size": x.size
                     },
                     "coverage": d.coverage
                 }
@@ -157,6 +172,13 @@ d3.json('test_tiles.json').then((data) => {
 
             })
 
+        })
+
+        // order result by descending tile size so smaller tiles load last
+        result.sort((a,b) => {
+            if (a.tile.size < b.tile.size) return 1;
+            if (a.tile.size > b.tile.size) return -1;
+            return 0;
         })
 
         return result
@@ -234,8 +256,8 @@ d3.json('test_tiles.json').then((data) => {
         // color palette = one color per type
         var color = d3.scaleOrdinal()
             //.domain(["SMRT-Bell", "Payload"])
-            .domain(["ITR", "payload", "RepCap", "backbone", "Helper"])
-            .range(['#e41a1c','#377eb8', '#4daf4a', '#A020F0', '#FFFF00'])
+            //.domain(["ITR", "payload", "RepCap", "backbone", "Helper"])
+            .range(['black', 'red','blue', 'purple', 'green', 'orange', 'grey', 'pink', 'yellow', 'brown'])
             // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
 
 
