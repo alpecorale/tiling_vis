@@ -2,7 +2,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>IGV Portal</title>
+    <title>Tiling Portal</title>
     <!-- IGV Portal-->
     <script src="https://cdn.jsdelivr.net/npm/igv@2.13.3/dist/igv.min.js"></script>
     <!-- JQuerry -->
@@ -67,15 +67,21 @@
     <select id="sortBySelect">
         <option value="count" selected>Count</option>
         <option value="coverage">Coverage</option>
-    </select>
-
-    <p>Show first: </p>
-    <select id="showFirstSelect">
-        <option value="-1" selected>All</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-
     </select> -->
+
+
+
+    <br />
+    <div class="container">
+        <!-- <p>Show first: </p>
+        <select id="showFirstSelect">
+            <option value="-1" selected>All</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+
+        </select> -->
+        <button id="greyColorScheme" class="btn btn-primary" onclick="changeColorScheme('grey')">Show ITR's and Barcodes</button>
+    </div>
 
 
     <!-- Create a div where the graph will take place -->

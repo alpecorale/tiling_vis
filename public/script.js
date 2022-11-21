@@ -15,7 +15,7 @@ function delay(ms) {
 
 
 // turn full csv to node link json
- 
+
 // d3.json('test_tiles.json').then((data) => { // bobs data
 d3.json('ONT_BC_PH.json').then((data) => { // bobs data
 
@@ -45,7 +45,7 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
         // })
         // d.tiles = tileArr
         // d.num_tiles = tileArr.length
-        
+
 
         // // get read coverage
         // let tileCov = 0
@@ -74,9 +74,10 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
             obj.start = positionsArr[vi].split('-')[0]
             obj.end = positionsArr[vi].split('-')[1]
             obj.strand = v.slice(0, 1)
+            obj.size = obj.end - obj.start
             tileArr.push(obj)
 
-            if (obj.end > localMaxNum) { localMaxNum = obj.end}
+            if (obj.end > localMaxNum) { localMaxNum = obj.end }
         })
         d.tiles = tileArr
         d.num_tiles = tileArr.length
@@ -99,28 +100,44 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
 
     })
 
-    // // show first (x)
-    // d3.select('#showFirstSelect').on("change", async function () {
-    //     const selectedOption = this.value
-    //     console.log(selectedOption)
-    //     switch (selectedOption) {
+    // Handle color scheme changes
+    let colorScheme = 'default'
 
-    //         case '-1':
-    //             data = data
-    //             break;
+    d3.select('#greyColorScheme').on("click", async function () {
 
-    //         case '20':
-    //             data = data.slice(0, 20)
-    //             break;
+        if (colorScheme !== 'grey') {
+            colorScheme = 'grey'
+        } else {
+            colorScheme = 'default'
+        }
+        d3.select("#my_dataviz").html("") // empty old and make new chart
+        makePlot()
+    })
 
-    //         case '50':
-    //             data = data.slice(0, 5)
-    //             break;
-    //     }
-    //     data2 = makeData2()
-    //     d3.select("#my_dataviz").html("") // empty old and make new chart
-    //     makePlot()
-    // })
+
+
+    // show first (x)
+    d3.select('#showFirstSelect').on("change", async function () {
+        const selectedOption = this.value
+        console.log(selectedOption)
+        switch (selectedOption) {
+
+            case '-1':
+                data = data
+                break;
+
+            case '20':
+                data = data.slice(0, 20)
+                break;
+
+            case '50':
+                data = data.slice(0, 50)
+                break;
+        }
+        data2 = makeData2()
+        d3.select("#my_dataviz").html("") // empty old and make new chart
+        makePlot()
+    })
 
 
     // // sort data when needed 
@@ -175,7 +192,7 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
         })
 
         // order result by descending tile size so smaller tiles load last
-        result.sort((a,b) => {
+        result.sort((a, b) => {
             if (a.tile.size < b.tile.size) return 1;
             if (a.tile.size > b.tile.size) return -1;
             return 0;
@@ -185,6 +202,21 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
     }
 
     data2 = makeData2()
+
+
+    // Color Legend
+
+    // make this dynamic ... i did ... just need to remove this array then resort colors
+    let keys = []
+
+    data2.forEach(d => {
+        let tileName = d.tile.name
+        keys.push(tileName)
+    })
+
+    keys = [...new Set(keys)]
+    console.log(keys)
+    // ['Backbone', 'hPAH', 'RNA', 'LNA', 'BC_SV40', 'ITR', 'SA_2A', '5_MCS', '3_MCS']
 
 
 
@@ -205,16 +237,17 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
             .append("g")
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")")
-            
+
         // handle zoom
         function handleZoom(e) {
             d3.select('svg')
-              .attr('transform', e.transform);
-          }
+                .attr('transform', e.transform);
+        }
         let zoom = d3.zoom()
-            .on('zoom', handleZoom);    
+            .on('zoom', handleZoom);
 
-        // d3.select('svg').call(zoom);
+        // d3.select('svg').call(zoom); // to turn zoom back on
+
 
         // ----------------
         // Create a tooltip
@@ -236,7 +269,7 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
          */
         // Add X axis
         var x = d3.scaleLinear()
-            .domain([0, maxReadNum + 94]) // round maxReadNum up some how in future
+            .domain([0, maxReadNum + 100]) // round maxReadNum up some how in future
             .range([0, width]);
         svg.append("g")
             .attr("transform", "translate(0," + height + ")")
@@ -255,10 +288,56 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
 
         // color palette = one color per type
         var color = d3.scaleOrdinal()
-            //.domain(["SMRT-Bell", "Payload"])
-            //.domain(["ITR", "payload", "RepCap", "backbone", "Helper"])
-            .range(['black', 'red','blue', 'purple', 'green', 'orange', 'grey', 'pink', 'yellow', 'brown'])
-            // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
+            .domain(keys)
+            // ['Backbone', 'hPAH', 'RNA', 'LNA', 'BC_SV40', 'ITR', 'SA_2A', '5_MCS', '3_MCS']
+            .range(['grey', 'orange', 'blue', 'green', 'red', 'black', 'yellow', 'pink', 'purple'])
+        // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
+
+
+        var colorGrey = d3.scaleOrdinal()
+            .domain(keys)
+            .range(['lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'red', 'blue', 'lightgrey', 'lightgrey', 'lightgrey'])
+
+
+
+        // Add one dot in the legend for each name.
+        svg.selectAll("mydots")
+            .data(keys)
+            .enter()
+            .append("circle")
+            .attr("cx", 800)
+            .attr("cy", function (d, i) { return 200 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
+            .attr("r", 7)
+            .style("fill", function (d) {
+                switch (colorScheme) {
+                    case 'default':
+                        return color(d)
+
+                    case 'grey':
+                        return colorGrey(d)
+                }
+            })
+
+        // Add one dot in the legend for each name.
+        svg.selectAll("mylabels")
+            .data(keys)
+            .enter()
+            .append("text")
+            .attr("x", 820)
+            .attr("y", function (d, i) { return 200 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
+            .style("fill", function (d) {
+                switch (colorScheme) {
+                    case 'default':
+                        return color(d)
+
+                    case 'grey':
+                        return colorGrey(d)
+
+                }
+            })
+            .text(function (d) { return d })
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle")
 
 
 
@@ -272,13 +351,24 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
             .attr("width", function (d) { return x(d.tile.end - d.tile.start); }) // width is end - start
             .attr("height", y.bandwidth())
             // .attr("fill", "url(#diagonal-stripe-2)") // might need to make this a function and add colors to different <svg> ids and set that as the range
-            .attr("fill", function (d) { return color(d.tile.name) })
+            .attr("fill", function (d) {
+
+                switch (colorScheme) {
+                    case 'default':
+                        return color(d.tile.name)
+
+                    case 'grey':
+                        return colorGrey(d.tile.name)
+
+                }
+
+            })
             .attr("stroke", "grey")
             .on("mouseover", function (event, d) {
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
-                tooltip.html("Read ID: " + d.read_ID + "<br/>" + "Type: " + d.tile.name + "<br/>" + "Strandedness: " + d.tile.strand + "<br/>" + "Read Count: " + d.count + " <br/>" + "Coverage: " + d.coverage + "%" + "<br/ >" + "[Start-End]: [" + d.tile.start + '-' + d.tile.end + ']' )
+                tooltip.html("Read ID: " + d.read_ID + "<br/>" + "Type: " + d.tile.name + "<br/>" + "Strandedness: " + d.tile.strand + "<br/>" + "Read Count: " + d.count + " <br/>" + "Coverage: " + d.coverage + "%" + "<br/ >" + "[Start-End]: [" + d.tile.start + '-' + d.tile.end + ']')
                     .style("top", (event.pageY + 30) + "px")
                     .style("left", (event.pageX + 50) + "px");
             })
@@ -289,9 +379,59 @@ d3.json('ONT_BC_PH.json').then((data) => { // bobs data
             });
 
 
+        // // add arrows to barcode bars
+        // svg.selectAll("myArrow")
+        //     .data(data2)
+        //     .enter()
+        //     .append("path")
+        //     .attr('d', (d) => {
+        //         if (d.tile.name === 'BC_SV40')
+        //         return d3.line()([[x(d.tile.start), y(d.id) + (.5 *y.bandwidth())], [x(d.tile.end), y(d.id) + (.5 *y.bandwidth())]])
+        //     })
+        //     .attr('stroke', 'black')
+        //     .attr('fill', 'none');
+
+        // add plus or minus to barcodes
+        svg.selectAll("myStrandedness")
+            .data(data2)
+            .enter()
+            .append("text")
+            .attr('x', (d) => {
+                return x(d.tile.start)
+                // return (x(d.tile.start) + x(d.tile.end)) / 2
+            })
+            .attr('y', (d) => {
+                return y(d.id) + (.5 * y.bandwidth())
+            })
+            .text(function (d) {
+                if (d.tile.name === 'BC_SV40')
+                    return d.tile.strand
+            })
+            .attr("text-anchor", "left")
+            .style("alignment-baseline", "middle")
+            .style("font-size", "9px")
+
+
     }
     makePlot()
 
 })
 
+
+
+// // Handle color scheme changes
+// let colorScheme = 'default'
+
+function changeColorScheme(scheme) {
+    console.log('Reminder to move color scheme out side at some point')
+    //     switch (scheme) {
+    //         case 'grey':
+    //             if (colorScheme !== scheme) {
+    //                 colorScheme = scheme
+    //             } else {
+    //                 colorScheme = 'default'
+    //             }
+    //     }
+
+}
 
