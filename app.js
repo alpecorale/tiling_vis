@@ -81,10 +81,79 @@ const spawnPromise = util.promisify(spawn)
 
 
 
+/*
+* Multer temp Storage location 1
+*/
+const storageRawData = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, "./raw_data");
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
+});
+
+const RawData = multer({ storage: storageRawData });
+
+/*
+* Used for temporary attachment uploads (saves them in ./raw_data)
+* adds them as an attachment to prexisting issue
+* Need cronjob to clear directory periodically or after successfull upload
+*/
+app.post('/downloadRawData', RawData.any('files'), (req, res, next) => {
+
+    if (res.status(200)) {
+        console.log("Your file has been uploaded successfully.");
+        console.log(req.files);
+        res.json({ message: "Successfully uploaded files" });
+        res.end();
+
+        // use exec() or cron job to move file around cluster
+        cleanData(req.files[0].path, req.body.format)
+    }
+
+})
+
+async function cleanData(path, format) {
+
+    // transform file to desired JS input type
+    await execPromise("python python_scripts/main.py " + path + ' ' + format, (error, stdout, stderr) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+    });
+
+    // yah the rm is working bc not returning promise correctly prbly
+
+    // remove raw file after transformation
+    await execPromise("rm " + path, (error, stdout, stderr) => {
+        if (error) {
+            console.log(`error: ${error.message}`);
+            return;
+        }
+        if (stderr) {
+            console.log(`stderr: ${stderr}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+    });
+
+}
+
+
+
+
+
 
 // good example for copy paste
 app.get('/testServerNav', async (req, res) => {
-    
+
 
     readFilePromise('/grid/home/nbourgeois/igv_data/summary/NT-10_summary.json')
         .then(data => {

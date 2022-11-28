@@ -69,7 +69,35 @@
         <option value="coverage">Coverage</option>
     </select> -->
 
+    <br />
+    <div class="container">
 
+        <div class="mb-3 row">
+            <label class="col-sm-2 col-form-label" for="inputFile">Tiling Data Input:</label>
+            <div class="col-sm-4" style="display: flex;">
+                <input class="form-control" type="file" id="inputFile">
+
+            </div>
+            <label class="col-sm-2 col-form-label" for="fileFormat">File Format:</label>
+            <div class="col-sm-2" style="display: flex;">
+                <select class="form-control" id="fileFormat">
+                    <option value="parham">Parham's</option>
+                    <option value="bob">Bob's</option>
+                    <!-- <option value="parham">Parham's</option> -->
+                    <option value="gustavo" disabled>Gustavo's</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="mb-3 row">
+            <div class="col-sm-3" style="display: flex;">
+                <button id="loadData" class="btn btn-primary" onclick="loadFile()">Load Data Set</button>
+
+            </div>
+        </div>
+
+    </div>
+    <br />
 
     <br />
     <div class="container">
@@ -80,7 +108,7 @@
             <option value="50">50</option>
 
         </select> -->
-        <button id="greyColorScheme" class="btn btn-primary" onclick="changeColorScheme('grey')">Show ITR's and Barcodes</button>
+        <!-- <button id="greyColorScheme" class="btn btn-primary" onclick="changeColorScheme('grey')">Show ITR's and Barcodes</button> -->
     </div>
 
 
@@ -88,6 +116,23 @@
     <div id="my_dataviz">
 
     </div>
+
+    <!-- <div>
+        <h3>Supplementary Visualizations</h3>
+        <br/>
+        <div>
+            <p>Count of each Sequence:</p>
+            <div id="count_dataviz">
+
+            </div>
+        </div>
+        <div>
+            <p>% Coverage:</p>
+            <div id="coverage_dataviz">
+
+            </div>
+        </div>
+    </div> -->
 
 
     <div id="liveAlertPlaceholder"
