@@ -1,13 +1,6 @@
 console.log(d3.version)
 
-
-let pac76SankeyJson = {
-    "nodes": [],
-    "links": []
-}
-
 let groupByFirst = []
-
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -18,6 +11,7 @@ function delay(ms) {
 async function loadFile() {
 
     const rawFile = document.getElementById('inputFile').files // rawFile
+
     const fileFormat = document.getElementById('fileFormat').value // format
 
     let rawFileToPass = new FormData()
@@ -34,8 +28,6 @@ async function loadFile() {
         body: rawFileToPass,
     }).catch((error) => ("Something went wrong!", error));
 
-    loadVis()
-
 
 }
 
@@ -45,7 +37,9 @@ async function loadFile() {
 async function loadVis() {
     // d3.json('test_tiles.json').then((data) => { // bobs data
     // d3.json('ONT_BC_PH.json').then((data) => { // parhams data
-    d3.json('clean_data/output.json').then((data) => { // parhams data
+    const pick = document.getElementById('pickDataset').value
+
+    d3.json('clean_data/' + pick + '.json').then((data) => { // parhams data
 
         // temp stuff for "igv style" barchart
         // let maxReadNum = 2806 // for tiles.json
@@ -53,6 +47,8 @@ async function loadVis() {
         let maxReadNum = 15000
 
         let data2 = []
+
+        data = data.slice(0, 50)
 
         // fix tiles section to be array of objects
         data.map((d, i) => {
@@ -96,7 +92,12 @@ async function loadVis() {
             let localMaxNum = 0
             stringArr.forEach((v, vi) => {
                 let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't' }
-                obj.name = v.slice(1) // maybe we should join name and strand tg and set up color map to do different shades for each
+
+                // clean names of + and other junk
+                let cleanName = v.slice(1)
+                cleanName = cleanName.split('+').join('_')
+
+                obj.name = cleanName // maybe we should join name and strand tg and set up color map to do different shades for each
                 obj.start = positionsArr[vi].split('-')[0]
                 obj.end = positionsArr[vi].split('-')[1]
                 obj.strand = v.slice(0, 1)
@@ -129,16 +130,16 @@ async function loadVis() {
         // Handle color scheme changes
         let colorScheme = 'default'
 
-        d3.select('#greyColorScheme').on("click", async function () {
+        // d3.select('#greyColorScheme').on("click", async function () {
 
-            if (colorScheme !== 'grey') {
-                colorScheme = 'grey'
-            } else {
-                colorScheme = 'default'
-            }
-            d3.select("#my_dataviz").html("") // empty old and make new chart
-            makePlot()
-        })
+        //     if (colorScheme !== 'grey') {
+        //         colorScheme = 'grey'
+        //     } else {
+        //         colorScheme = 'default'
+        //     }
+        //     d3.select("#my_dataviz").html("") // empty old and make new chart
+        //     makePlot()
+        // })
 
 
 
@@ -316,7 +317,8 @@ async function loadVis() {
             var color = d3.scaleOrdinal()
                 .domain(keys)
                 // ['Backbone', 'hPAH', 'RNA', 'LNA', 'BC_SV40', 'ITR', 'SA_2A', '5_MCS', '3_MCS']
-                .range(['grey', 'orange', 'blue', 'green', 'red', 'black', 'yellow', 'pink', 'purple'])
+                
+                .range(['grey', "#1f77b4","#ff7f0e","#d62728", "#2ca02c", 'black', "#9467bd","#8c564b","#e377c2","#bcbd22","#17becf"]) // category 10 but grey is moved and black is added so support for up to 11
             // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
 
 
@@ -427,6 +429,7 @@ async function loadVis() {
                     return d.tile.name
                 }) // filter for barcodes
                 .attr("class", (d) => { 
+                    
                     return "class" + d.tile.name + "Strand" 
                 })
                 .attr('x', (d) => {

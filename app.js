@@ -100,17 +100,25 @@ const RawData = multer({ storage: storageRawData });
 * adds them as an attachment to prexisting issue
 * Need cronjob to clear directory periodically or after successfull upload
 */
-app.post('/downloadRawData', RawData.any('files'), (req, res, next) => {
+app.post('/downloadRawData', RawData.any('files'), async (req, res, next) => {
 
     if (res.status(200)) {
+
+
+        // await cleanData(req.files[0].path, req.body.format)
+
         console.log("Your file has been uploaded successfully.");
         console.log(req.files);
+
         res.json({ message: "Successfully uploaded files" });
         res.end();
 
         // use exec() or cron job to move file around cluster
         cleanData(req.files[0].path, req.body.format)
+
     }
+    
+    
 
 })
 
@@ -128,22 +136,24 @@ async function cleanData(path, format) {
             return;
         }
         console.log(`stdout: ${stdout}`);
+
     });
+
 
     // yah the rm is working bc not returning promise correctly prbly
 
-    // remove raw file after transformation
-    await execPromise("rm " + path, (error, stdout, stderr) => {
-        if (error) {
-            console.log(`error: ${error.message}`);
-            return;
-        }
-        if (stderr) {
-            console.log(`stderr: ${stderr}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-    });
+    // // remove raw file after transformation
+    // await execPromise("rm " + path, (error, stdout, stderr) => {
+    //     if (error) {
+    //         console.log(`error: ${error.message}`);
+    //         return;
+    //     }
+    //     if (stderr) {
+    //         console.log(`stderr: ${stderr}`);
+    //         return;
+    //     }
+    //     console.log(`stdout: ${stdout}`);
+    // });
 
 }
 

@@ -82,8 +82,7 @@
             <div class="col-sm-2" style="display: flex;">
                 <select class="form-control" id="fileFormat">
                     <option value="parham">Parham's</option>
-                    <option value="bob">Bob's</option>
-                    <!-- <option value="parham">Parham's</option> -->
+                    <option value="bob" disabled>Bob's</option>
                     <option value="gustavo" disabled>Gustavo's</option>
                 </select>
             </div>
@@ -91,8 +90,25 @@
 
         <div class="mb-3 row">
             <div class="col-sm-3" style="display: flex;">
-                <button id="loadData" class="btn btn-primary" onclick="loadFile()">Load Data Set</button>
+                <button id="loadData" class="btn btn-primary" onclick="loadFile()">Upload Data Set</button>
+            </div>
+            <div class="col-sm-6" style="display: flex;">
+                <p>Please give 3-5mins to let larger data sets be uploaded.</p>
+            </div>
+        </div>
 
+        <div class="mb-3 row">
+            <label class="col-sm-2 col-form-label" for="pickDataset">Pick Dataset:</label>
+            <div class="col-sm-2" style="display: flex;">
+                <select class="form-control" id="pickDataset">
+                    <option value="Final_BC_Vectors_PacBio_Annotated_PH">Final_BC_Vectors_PacBio_Annotated_PH</option>
+                    <option value="Final_BC_Vectors_PacBio_Annotated_PH_2">Final_BC_Vectors_PacBio_Annotated_PH_2</option>
+                    <option value="Final_BC_Vectors_ONT_Annotated_PH">Final_BC_Vectors_ONT_Annotated_PH</option>
+                </select>
+            </div>
+            <div class="col-sm-2" style="display: flex;"></div>
+            <div class="col-sm-3" style="display: flex;">
+                <button id="loadData" class="btn btn-primary" onclick="loadVis()">Upload Data Set</button>
             </div>
         </div>
 
