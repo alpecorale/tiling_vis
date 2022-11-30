@@ -116,6 +116,7 @@ app.post('/downloadRawData', RawData.any('files'), (req, res, next) => {
 
 async function cleanData(path, format) {
 
+    console.log('inside clean data')
     // transform file to desired JS input type
     await execPromise("python python_scripts/main.py " + path + ' ' + format, (error, stdout, stderr) => {
         if (error) {

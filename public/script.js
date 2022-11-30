@@ -16,7 +16,7 @@ function delay(ms) {
 
 // turn full csv to node link json
 async function loadFile() {
-    
+
     const rawFile = document.getElementById('inputFile').files // rawFile
     const fileFormat = document.getElementById('fileFormat').value // format
 
@@ -44,8 +44,8 @@ async function loadFile() {
 
 async function loadVis() {
     // d3.json('test_tiles.json').then((data) => { // bobs data
-    d3.json('ONT_BC_PH.json').then((data) => { // bobs data
-
+    // d3.json('ONT_BC_PH.json').then((data) => { // parhams data
+    d3.json('clean_data/output.json').then((data) => { // parhams data
 
         // temp stuff for "igv style" barchart
         // let maxReadNum = 2806 // for tiles.json
@@ -88,7 +88,6 @@ async function loadVis() {
 
 
             // parhams data
-            // Havent tested it but like lowkey this should work for generating the tiles
             d.count = d.Length
             d.dist = d.count / 100000 // distribution really doesnt matter
             let stringArr = d.String.split(':')
@@ -321,12 +320,6 @@ async function loadVis() {
             // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
 
 
-            var colorGrey = d3.scaleOrdinal()
-                .domain(keys)
-                .range(['lightgrey', 'lightgrey', 'lightgrey', 'lightgrey', 'red', 'blue', 'lightgrey', 'lightgrey', 'lightgrey'])
-
-
-
             // Add one dot in the legend for each name.
             svg.selectAll("mydots")
                 .data(keys)
@@ -338,16 +331,8 @@ async function loadVis() {
                 .attr("cx", 800)
                 .attr("cy", function (d, i) { return 200 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
                 .attr("r", 7)
-                .style("fill", function (d) {
-                    return color(d)
-                    // switch (colorScheme) {
-                    //     case 'default':
-                    //         return color(d)
-
-                    //     case 'grey':
-                    //         return colorGrey(d)
-                    // }
-                })
+                .style("fill", function (d) { return color(d)})
+                .style("cursor", 'pointer')
                 .on("click", (event, d) => {
 
                     // //  is the element currently visible ?
@@ -358,8 +343,14 @@ async function loadVis() {
                     let currentColor = d3.selectAll((".class" + d)).style("fill")
                     d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
                 })
+                .on("dblclick", (event, d) => {
+                    //  is the element currently visible ?
+                    let currentOpacity = d3.selectAll((".class" + d + "Strand")).style("opacity")
+                    // Change the opacity: from 0 to 1 or from 1 to 0
+                    d3.selectAll(".class" + d + "Strand").transition().style("opacity", currentOpacity == 1 ? 0 : 1)
+                })
 
-            // Add one dot in the legend for each name.
+            // Add text for legend.
             svg.selectAll("mylabels")
                 .data(keys)
                 .enter()
@@ -369,20 +360,11 @@ async function loadVis() {
                 .attr("class", (d) => {
                     return "class" + d
                 })
-                .style("fill", function (d) {
-                    return color(d)
-                    // switch (colorScheme) {
-                    //     case 'default':
-                    //         return color(d)
-
-                    //     case 'grey':
-                    //         return colorGrey(d)
-
-                    // }
-                })
+                .style("fill", function (d) {return color(d)})
                 .text(function (d) { return d })
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
+                .style("cursor", 'pointer')
                 .on("click", (event, d) => {
 
                     // //  is the element currently visible ?
@@ -393,7 +375,12 @@ async function loadVis() {
                     let currentColor = d3.selectAll((".class" + d)).style("fill")
                     d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
                 })
-
+                .on("dblclick", (event, d) => {
+                    //  is the element currently visible ?
+                    let currentOpacity = d3.selectAll((".class" + d + "Strand")).style("opacity")
+                    // Change the opacity: from 0 to 1 or from 1 to 0
+                    d3.selectAll(".class" + d + "Strand").transition().style("opacity", currentOpacity == 1 ? 0 : 1)
+                })
 
 
 
@@ -413,15 +400,6 @@ async function loadVis() {
                 .attr("fill", function (d) {
                     return color(d.tile.name)
 
-                    // switch (colorScheme) {
-                    //     case 'default':
-                    //         return color(d.tile.name)
-
-                    //     case 'grey':
-                    //         return colorGrey(d.tile.name)
-
-                    // }
-
                 })
                 .attr("stroke", "grey")
                 .on("mouseover", function (event, d) {
@@ -439,27 +417,18 @@ async function loadVis() {
                 });
 
 
-            // // add arrows to barcode bars
-            // svg.selectAll("myArrow")
-            //     .data(data2)
-            //     .enter()
-            //     .append("path")
-            //     .attr('d', (d) => {
-            //         if (d.tile.name === 'BC_SV40')
-            //         return d3.line()([[x(d.tile.start), y(d.id) + (.5 *y.bandwidth())], [x(d.tile.end), y(d.id) + (.5 *y.bandwidth())]])
-            //     })
-            //     .attr('stroke', 'black')
-            //     .attr('fill', 'none');
 
             // add plus or minus to barcodes
             svg.selectAll("myStrandedness")
                 .data(data2)
                 .enter()
                 .append("text")
-                .filter(d => { return d.tile.name === 'BC_SV40' }) // filter for barcodes
-                // .attr("class", (d) => { 
-                //     return "class" + d.tile.name 
-                // })
+                .filter(d => {
+                    return d.tile.name
+                }) // filter for barcodes
+                .attr("class", (d) => { 
+                    return "class" + d.tile.name + "Strand" 
+                })
                 .attr('x', (d) => {
                     return x(d.tile.start)
                     // return (x(d.tile.start) + x(d.tile.end)) / 2
@@ -471,28 +440,15 @@ async function loadVis() {
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
                 .style("font-size", "9px")
+                .style("opacity", 0)
 
 
         }
         makePlot()
 
+
+
     })
 }
 
-
-// // Handle color scheme changes
-// let colorScheme = 'default'
-
-function changeColorScheme(scheme) {
-    console.log('Reminder to move color scheme out side at some point')
-    //     switch (scheme) {
-    //         case 'grey':
-    //             if (colorScheme !== scheme) {
-    //                 colorScheme = scheme
-    //             } else {
-    //                 colorScheme = 'default'
-    //             }
-    //     }
-
-}
 
