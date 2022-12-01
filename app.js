@@ -95,6 +95,22 @@ const storageRawData = multer.diskStorage({
 
 const RawData = multer({ storage: storageRawData });
 
+
+// Get list of clean data files
+app.get('/getCleanDataOptions', async (req, res) => {
+    let options = []
+
+    execPromise("cd public/clean_data; ls;").then(data => {
+        options = data.stdout.split('\n')
+        options.pop()
+        options = options.map(x =>
+            x.split('.')[0])
+        res.send(options)
+    })
+
+})
+
+
 /*
 * Used for temporary attachment uploads (saves them in ./raw_data)
 * adds them as an attachment to prexisting issue

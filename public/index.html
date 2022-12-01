@@ -90,7 +90,7 @@
 
         <div class="mb-3 row">
             <div class="col-sm-3" style="display: flex;">
-                <button id="loadData" class="btn btn-primary" onclick="loadFile()">Upload Data Set</button>
+                <button id="loadData" class="btn btn-primary" onclick="loadFile()">Upload New Data Set</button>
             </div>
             <div class="col-sm-6" style="display: flex;">
                 <p>Please give 3-5mins to let larger data sets be uploaded.</p>
@@ -102,13 +102,14 @@
             <div class="col-sm-2" style="display: flex;">
                 <select class="form-control" id="pickDataset">
                     <option value="Final_BC_Vectors_PacBio_Annotated_PH">Final_BC_Vectors_PacBio_Annotated_PH</option>
-                    <option value="Final_BC_Vectors_PacBio_Annotated_PH_2">Final_BC_Vectors_PacBio_Annotated_PH_2</option>
+                    <option value="Final_BC_Vectors_PacBio_Annotated_PH_2">Final_BC_Vectors_PacBio_Annotated_PH_2
+                    </option>
                     <option value="Final_BC_Vectors_ONT_Annotated_PH">Final_BC_Vectors_ONT_Annotated_PH</option>
                 </select>
             </div>
             <div class="col-sm-2" style="display: flex;"></div>
             <div class="col-sm-3" style="display: flex;">
-                <button id="loadData" class="btn btn-primary" onclick="loadVis()">Upload Data Set</button>
+                <button id="loadData" class="btn btn-primary" onclick="loadVis()">Load Data Set Viz</button>
             </div>
         </div>
 
@@ -117,13 +118,16 @@
 
     <br />
     <div class="container">
-        <!-- <p>Show first: </p>
-        <select id="showFirstSelect">
-            <option value="-1" selected>All</option>
-            <option value="20">20</option>
-            <option value="50">50</option>
+        <div class="mb-3 row">
+            <p class="col-sm-2">Show first: </p>
+            <select class="col-sm-1" id="showFirstSelect">
+                <!-- <option value="-1">All (pls dont do if a lot)</option> -->
+                <option value="20">20</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
 
-        </select> -->
         <!-- <button id="greyColorScheme" class="btn btn-primary" onclick="changeColorScheme('grey')">Show ITR's and Barcodes</button> -->
     </div>
 

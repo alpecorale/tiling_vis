@@ -1,10 +1,41 @@
 console.log(d3.version)
 
 let groupByFirst = []
+let allCleanOptions = []
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+
+// get all file options
+async function getAllCleanOptions() {
+    // call get fxn
+    await fetch('/getCleanDataOptions', {
+        method: 'GET',
+        headers: {
+            "Content-Type": "application/json"
+        }
+    }).then(response => {
+        return response.json()
+    }).then(json => {
+        json.forEach(opt => {
+            allCleanOptions.push(opt)
+        })
+    })
+
+    // fill in track options
+    let htmlProjectOptions = `<option value=''>None</option>`
+    allCleanOptions.forEach(name => {
+        htmlProjectOptions += `<option value="` + name + `">` + name + `</option>`
+    })
+    document.getElementById("pickDataset").innerHTML = htmlProjectOptions
+
+
+}
+getAllCleanOptions()
+
+
 
 
 // turn full csv to node link json
@@ -35,6 +66,10 @@ async function loadFile() {
 
 
 async function loadVis() {
+
+    // clear vis before loading new viz
+    document.getElementById('my_dataviz').innerHTML = ''
+
     // d3.json('test_tiles.json').then((data) => { // bobs data
     // d3.json('ONT_BC_PH.json').then((data) => { // parhams data
     const pick = document.getElementById('pickDataset').value
@@ -44,11 +79,11 @@ async function loadVis() {
         // temp stuff for "igv style" barchart
         // let maxReadNum = 2806 // for tiles.json
         // let maxReadNum = 3500 // for test_tiles.json // bob
-        let maxReadNum = 15000
+        let maxReadNum = 0 // max read num is generated dynamically now
 
         let data2 = []
 
-        data = data.slice(0, 50)
+        // data = data.slice(0, 101)
 
         // fix tiles section to be array of objects
         data.map((d, i) => {
@@ -80,7 +115,7 @@ async function loadVis() {
             // tileCov = (tileCov / maxReadNum) * 100
             // tileCov = Math.round(tileCov * 100) / 100
             // d.coverage = tileCov
-            // d.readNum = i
+            // d.readID = i
 
 
             // parhams data
@@ -104,7 +139,8 @@ async function loadVis() {
                 obj.size = obj.end - obj.start
                 tileArr.push(obj)
 
-                if (obj.end > localMaxNum) { localMaxNum = obj.end }
+                //console.log('obj end', obj.end)
+                if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
             })
             d.tiles = tileArr
             d.num_tiles = tileArr.length
@@ -119,10 +155,12 @@ async function loadVis() {
             tileCov = (tileCov / maxReadNum) * 100
             tileCov = Math.round(tileCov * 100) / 100
             d.coverage = tileCov
-            d.readNum = i
+            d.readID = d.ReadID
 
             // get maxReadNum //um idk
-            // if (localMaxNum > maxReadNum) { maxReadNum = localMaxNum}
+            if (localMaxNum > maxReadNum) { 
+                maxReadNum = localMaxNum
+            }
 
 
         })
@@ -138,7 +176,7 @@ async function loadVis() {
         //         colorScheme = 'default'
         //     }
         //     d3.select("#my_dataviz").html("") // empty old and make new chart
-        //     makePlot()
+        //     makePlot(data, data2)
         // })
 
 
@@ -146,24 +184,26 @@ async function loadVis() {
         // show first (x)
         d3.select('#showFirstSelect').on("change", async function () {
             const selectedOption = this.value
-            console.log(selectedOption)
+            let tempData = data
             switch (selectedOption) {
 
                 case '-1':
-                    data = data
+                    tempData = data
                     break;
-
                 case '20':
-                    data = data.slice(0, 20)
+                    tempData = data.slice(0, 20)
                     break;
 
                 case '50':
-                    data = data.slice(0, 50)
+                    tempData = data.slice(0, 50)
+                    break;
+                case '100':
+                    tempData = data.slice(0, 100)
                     break;
             }
-            data2 = makeData2()
+            data2 = makeData2(tempData)
             d3.select("#my_dataviz").html("") // empty old and make new chart
-            makePlot()
+            makePlot(tempData, data2)
         })
 
 
@@ -190,15 +230,15 @@ async function loadVis() {
         // })
 
         // fix tiles to each be an independent line
-        function makeData2() {
+        function makeData2(inputData) {
             let result = []
 
-            data.forEach((d, di) => {
+            inputData.forEach((d, di) => {
 
                 d.tiles.forEach((x, xi) => {
                     let obj = {
                         "id": di,
-                        "read_ID": d.readNum,
+                        "read_ID": d.readID,
                         "num_tiles": d.num_tiles,
                         "count": d.count,
                         "dist": d.dist,
@@ -228,14 +268,13 @@ async function loadVis() {
             return result
         }
 
-        data2 = makeData2()
+        data2 = makeData2(data.slice(0, 50))
 
 
         // Color Legend
-
-        // make this dynamic ... i did ... just need to remove this array then resort colors
         let keys = []
 
+        // can move this inside the something else prbly but its fine here
         data2.forEach(d => {
             let tileName = d.tile.name
             keys.push(tileName)
@@ -247,9 +286,9 @@ async function loadVis() {
 
 
 
-        function makePlot() {
+        function makePlot(inputData, inputData2) {
 
-            console.log('Data 2 inside makePlot: ', data2)
+            console.log('Data 2 inside makePlot: ', inputData2)
 
             // set the dimensions and margins of the graph
             var margin = { top: 20, right: 30, bottom: 40, left: 90 },
@@ -308,7 +347,7 @@ async function loadVis() {
             // Y axis
             var y = d3.scaleBand()
                 .range([0, height])
-                .domain(data.map(function (d, i) { return i; }))
+                .domain(inputData.map(function (d, i) { return i + 1; }))
                 .padding(.1);
             svg.append("g")
                 .call(d3.axisLeft(y))
@@ -317,8 +356,8 @@ async function loadVis() {
             var color = d3.scaleOrdinal()
                 .domain(keys)
                 // ['Backbone', 'hPAH', 'RNA', 'LNA', 'BC_SV40', 'ITR', 'SA_2A', '5_MCS', '3_MCS']
-                
-                .range(['grey', "#1f77b4","#ff7f0e","#d62728", "#2ca02c", 'black', "#9467bd","#8c564b","#e377c2","#bcbd22","#17becf"]) // category 10 but grey is moved and black is added so support for up to 11
+
+                .range(['grey', "#1f77b4", "#ff7f0e", "#d62728", "#2ca02c", 'black', "#9467bd", "#8c564b", "#e377c2", "#bcbd22", "#17becf"]) // category 10 but grey is moved and black is added so support for up to 11
             // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
 
 
@@ -331,9 +370,9 @@ async function loadVis() {
                     return "class" + d
                 })
                 .attr("cx", 800)
-                .attr("cy", function (d, i) { return 200 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
+                .attr("cy", function (d, i) { return 150 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
                 .attr("r", 7)
-                .style("fill", function (d) { return color(d)})
+                .style("fill", function (d) { return color(d) })
                 .style("cursor", 'pointer')
                 .on("click", (event, d) => {
 
@@ -358,11 +397,11 @@ async function loadVis() {
                 .enter()
                 .append("text")
                 .attr("x", 820)
-                .attr("y", function (d, i) { return 200 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
+                .attr("y", function (d, i) { return 150 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
                 .attr("class", (d) => {
                     return "class" + d
                 })
-                .style("fill", function (d) {return color(d)})
+                .style("fill", function (d) { return color(d) })
                 .text(function (d) { return d })
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
@@ -388,14 +427,14 @@ async function loadVis() {
 
             //Bars
             svg.selectAll("myRect")
-                .data(data2)
+                .data(inputData2)
                 .enter()
                 .append("rect")
                 .attr("class", (d) => {
                     return "class" + d.tile.name
                 })
                 .attr("x", function (d) { return x(d.tile.start) }) // have the x value start at the start of first tile
-                .attr("y", function (d, i) { return y(d.id); })
+                .attr("y", function (d, i) { return y(d.id + 1); })
                 .attr("width", function (d) { return x(d.tile.end - d.tile.start); }) // width is end - start
                 .attr("height", y.bandwidth())
                 // .attr("fill", "url(#diagonal-stripe-2)") // might need to make this a function and add colors to different <svg> ids and set that as the range
@@ -422,15 +461,15 @@ async function loadVis() {
 
             // add plus or minus to barcodes
             svg.selectAll("myStrandedness")
-                .data(data2)
+                .data(inputData2)
                 .enter()
                 .append("text")
                 .filter(d => {
                     return d.tile.name
                 }) // filter for barcodes
-                .attr("class", (d) => { 
-                    
-                    return "class" + d.tile.name + "Strand" 
+                .attr("class", (d) => {
+
+                    return "class" + d.tile.name + "Strand"
                 })
                 .attr('x', (d) => {
                     return x(d.tile.start)
@@ -447,7 +486,7 @@ async function loadVis() {
 
 
         }
-        makePlot()
+        makePlot(data.slice(0, 50), data2)
 
 
 
