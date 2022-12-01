@@ -63,12 +63,14 @@ async function loadFile() {
 }
 
 
-
+let currentNumShowing = 50
 
 async function loadVis() {
 
+
     // clear vis before loading new viz
     document.getElementById('my_dataviz').innerHTML = ''
+    document.getElementById('visOptions').style.display = 'block'
 
     // d3.json('test_tiles.json').then((data) => { // bobs data
     // d3.json('ONT_BC_PH.json').then((data) => { // parhams data
@@ -181,6 +183,7 @@ async function loadVis() {
 
 
 
+        
         // show first (x)
         d3.select('#showFirstSelect').on("change", async function () {
             const selectedOption = this.value
@@ -189,21 +192,40 @@ async function loadVis() {
 
                 case '-1':
                     tempData = data
+                    currentNumShowing = -1
                     break;
                 case '20':
                     tempData = data.slice(0, 20)
+                    currentNumShowing = 20
                     break;
 
                 case '50':
                     tempData = data.slice(0, 50)
+                    currentNumShowing = 50
                     break;
                 case '100':
                     tempData = data.slice(0, 100)
+                    currentNumShowing = 100
                     break;
             }
             data2 = makeData2(tempData)
             d3.select("#my_dataviz").html("") // empty old and make new chart
             makePlot(tempData, data2)
+        })
+
+        // show first (x)
+        let hoverCheck = false
+        d3.select('#hoverCheckbox').on("change", async function () {
+            hoverCheck = !hoverCheck
+            // if (hoverCheck) {
+            //     // turn hover off
+            // } else {
+            //     // turn hover on
+
+            // }
+            data2 = makeData2(data.slice(0, currentNumShowing))
+            d3.select("#my_dataviz").html("") // empty old and make new chart
+            makePlot(data.slice(0, currentNumShowing), data2)
         })
 
 
@@ -268,7 +290,7 @@ async function loadVis() {
             return result
         }
 
-        data2 = makeData2(data.slice(0, 50))
+        data2 = makeData2(data.slice(0, currentNumShowing))
 
 
         // Color Legend
@@ -444,6 +466,7 @@ async function loadVis() {
                 })
                 .attr("stroke", "grey")
                 .on("mouseover", function (event, d) {
+                    if (hoverCheck) {return}
                     tooltip.transition()
                         .duration(200)
                         .style("opacity", .9);
@@ -452,6 +475,7 @@ async function loadVis() {
                         .style("left", (event.pageX + 50) + "px");
                 })
                 .on("mouseout", function (d) {
+                    if (hoverCheck) {return}
                     tooltip.transition()
                         .duration(500)
                         .style("opacity", 0);
@@ -486,7 +510,7 @@ async function loadVis() {
 
 
         }
-        makePlot(data.slice(0, 50), data2)
+        makePlot(data.slice(0, currentNumShowing), data2)
 
 
 

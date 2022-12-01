@@ -117,7 +117,7 @@
     <br />
 
     <br />
-    <div class="container">
+    <div class="container" id="visOptions" style="display: none;">
         <div class="mb-3 row">
             <p class="col-sm-2">Show first: </p>
             <select class="col-sm-1" id="showFirstSelect">
@@ -126,7 +126,14 @@
                 <option value="50" selected>50</option>
                 <option value="100">100</option>
             </select>
+            <div class="col-sm-1"></div>
+            <p class="col-sm-2">Turn off hover box: </p>
+            <input type="checkbox" class="col-sm-1 form-check-input" id="hoverCheckbox">
         </div>
+        <!-- <div class="mb-3 row">
+            <p class="col-sm-2">Turn off hover box: </p>
+            <input type="checkbox" class="col-sm-1" id="hoverCheckbox">
+        </div> -->
 
         <!-- <button id="greyColorScheme" class="btn btn-primary" onclick="changeColorScheme('grey')">Show ITR's and Barcodes</button> -->
     </div>
