@@ -70,6 +70,7 @@ async function loadVis() {
 
     // clear vis before loading new viz
     document.getElementById('my_dataviz').innerHTML = ''
+    document.getElementById('my_dataviz_legend').innerHTML = ''
     document.getElementById('visOptions').style.display = 'block'
 
     // d3.json('test_tiles.json').then((data) => { // bobs data
@@ -127,6 +128,7 @@ async function loadVis() {
             let positionsArr = d.Positions.split(":")
             let tileArr = []
             let localMaxNum = 0
+            let count_each_obj = {}
             stringArr.forEach((v, vi) => {
                 let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't' }
 
@@ -143,9 +145,20 @@ async function loadVis() {
 
                 //console.log('obj end', obj.end)
                 if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
+
+                // handle count each object
+                if (cleanName in count_each_obj) {
+                    count_each_obj[cleanName] = count_each_obj[cleanName] + 1
+                } else {
+                    count_each_obj[cleanName] = 1
+                }
+
+
             })
             d.tiles = tileArr
             d.num_tiles = tileArr.length
+            d.local_max = localMaxNum
+            d.count_each = count_each_obj
 
             // get read coverage
             let tileCov = 0
@@ -160,7 +173,7 @@ async function loadVis() {
             d.readID = d.ReadID
 
             // get maxReadNum //um idk
-            if (localMaxNum > maxReadNum) { 
+            if (localMaxNum > maxReadNum) {
                 maxReadNum = localMaxNum
             }
 
@@ -183,7 +196,7 @@ async function loadVis() {
 
 
 
-        
+
         // show first (x)
         d3.select('#showFirstSelect').on("change", async function () {
             const selectedOption = this.value
@@ -210,10 +223,11 @@ async function loadVis() {
             }
             data2 = makeData2(tempData)
             d3.select("#my_dataviz").html("") // empty old and make new chart
+            d3.select("#my_dataviz_legend").html("")
             makePlot(tempData, data2)
         })
 
-        // show first (x)
+        // hover toggle
         let hoverCheck = false
         d3.select('#hoverCheckbox').on("change", async function () {
             hoverCheck = !hoverCheck
@@ -225,8 +239,20 @@ async function loadVis() {
             // }
             data2 = makeData2(data.slice(0, currentNumShowing))
             d3.select("#my_dataviz").html("") // empty old and make new chart
+            d3.select('#my_dataviz_legend').html("")
             makePlot(data.slice(0, currentNumShowing), data2)
         })
+
+        // count Each Type
+        let countCheckWhich = ''
+        d3.select('#countWhich').on("change", async function () {
+            countCheckWhich = document.getElementById('countWhich').value
+            data2 = makeData2(data.slice(0, currentNumShowing))
+            d3.select("#my_dataviz").html("")
+            d3.select('#my_dataviz_legend').html("")
+            makePlot(data.slice(0, currentNumShowing), data2)
+        })
+
 
 
         // // sort data when needed 
@@ -258,6 +284,7 @@ async function loadVis() {
             inputData.forEach((d, di) => {
 
                 d.tiles.forEach((x, xi) => {
+
                     let obj = {
                         "id": di,
                         "read_ID": d.readID,
@@ -272,7 +299,9 @@ async function loadVis() {
                             "strand": x.strand,
                             "size": x.size
                         },
-                        "coverage": d.coverage
+                        "coverage": d.coverage,
+                        "local_max": d.local_max,
+                        "count_each": d.count_each
                     }
                     result.push(obj)
 
@@ -307,6 +336,18 @@ async function loadVis() {
         // ['Backbone', 'hPAH', 'RNA', 'LNA', 'BC_SV40', 'ITR', 'SA_2A', '5_MCS', '3_MCS']
 
 
+        // populate countWhich select box
+
+        keys.forEach(key => {
+            let opt = document.createElement("option");
+            opt.value = key;
+            opt.innerHTML = key;
+
+            // then append it to the select element
+            document.getElementById('countWhich').appendChild(opt);
+        })
+
+
 
         function makePlot(inputData, inputData2) {
 
@@ -314,11 +355,20 @@ async function loadVis() {
 
             // set the dimensions and margins of the graph
             var margin = { top: 20, right: 30, bottom: 40, left: 90 },
-                width = 1000 - margin.left - margin.right,
-                height = 500 - margin.top - margin.bottom;
+                width = (window.innerWidth * .75) - margin.left - margin.right,
+                height = (window.innerHeight * .75) - margin.top - margin.bottom;
 
             // append the svg object to the body of the page
             var svg = d3.select("#my_dataviz")
+                .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")")
+
+            // append the svg object to the body of the page
+            var svgLegend = d3.select("#my_dataviz_legend")
                 .append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
@@ -357,7 +407,7 @@ async function loadVis() {
              */
             // Add X axis
             var x = d3.scaleLinear()
-                .domain([0, maxReadNum + 100]) // round maxReadNum up some how in future
+                .domain([0, maxReadNum + (maxReadNum * .05)])
                 .range([0, width]);
             svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
@@ -382,17 +432,23 @@ async function loadVis() {
                 .range(['grey', "#1f77b4", "#ff7f0e", "#d62728", "#2ca02c", 'black', "#9467bd", "#8c564b", "#e377c2", "#bcbd22", "#17becf"]) // category 10 but grey is moved and black is added so support for up to 11
             // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
 
+            /*
+            *
+            *   LEGEND
+            * 
+            */
 
             // Add one dot in the legend for each name.
-            svg.selectAll("mydots")
+            svgLegend.selectAll("mydots")
                 .data(keys)
                 .enter()
                 .append("circle")
                 .attr("class", (d) => {
                     return "class" + d
                 })
-                .attr("cx", 800)
-                .attr("cy", function (d, i) { return 150 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
+                .attr("cx", 5)
+                .attr("cy", function (d, i) { return i * 25 })
+
                 .attr("r", 7)
                 .style("fill", function (d) { return color(d) })
                 .style("cursor", 'pointer')
@@ -414,12 +470,12 @@ async function loadVis() {
                 })
 
             // Add text for legend.
-            svg.selectAll("mylabels")
+            svgLegend.selectAll("mylabels")
                 .data(keys)
                 .enter()
                 .append("text")
-                .attr("x", 820)
-                .attr("y", function (d, i) { return 150 + i * 25 }) // 100 is where the first dot appears. 25 is the distance between dots
+                .attr("x", 25)
+                .attr("y", function (d, i) { return i * 25 })
                 .attr("class", (d) => {
                     return "class" + d
                 })
@@ -429,11 +485,6 @@ async function loadVis() {
                 .style("alignment-baseline", "middle")
                 .style("cursor", 'pointer')
                 .on("click", (event, d) => {
-
-                    // //  is the element currently visible ?
-                    // let currentOpacity = d3.selectAll((".class" + d)).style("opacity")
-                    // // Change the opacity: from 0 to 1 or from 1 to 0
-                    // d3.selectAll(".class" + d).transition().style("opacity", currentOpacity == 1 ? 0 : 1)
 
                     let currentColor = d3.selectAll((".class" + d)).style("fill")
                     d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
@@ -446,6 +497,11 @@ async function loadVis() {
                 })
 
 
+            /*
+            *
+            * TILe
+            * 
+            */
 
             //Bars
             svg.selectAll("myRect")
@@ -466,7 +522,7 @@ async function loadVis() {
                 })
                 .attr("stroke", "grey")
                 .on("mouseover", function (event, d) {
-                    if (hoverCheck) {return}
+                    if (hoverCheck) { return }
                     tooltip.transition()
                         .duration(200)
                         .style("opacity", .9);
@@ -475,7 +531,7 @@ async function loadVis() {
                         .style("left", (event.pageX + 50) + "px");
                 })
                 .on("mouseout", function (d) {
-                    if (hoverCheck) {return}
+                    if (hoverCheck) { return }
                     tooltip.transition()
                         .duration(500)
                         .style("opacity", 0);
@@ -500,13 +556,61 @@ async function loadVis() {
                     // return (x(d.tile.start) + x(d.tile.end)) / 2
                 })
                 .attr('y', (d) => {
-                    return y(d.id) + (.5 * y.bandwidth())
+                    return y(d.id + 1) + (.5 * y.bandwidth())
                 })
                 .text(function (d) { return d.tile.strand })
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
-                .style("font-size", "9px")
+                .style("font-size", () => {
+                    switch (currentNumShowing) {
+                        case 20:
+                            return "15px"
+                        case 50:
+                            return "9px"
+                        case 100:
+                            return "5px"
+                    }
+                })
                 .style("opacity", 0)
+
+            // add count specific at end of rows
+            svg.selectAll("myCount")
+                .data(inputData2)
+                .enter()
+                .append("text")
+                // .filter(d => {
+                //     return d.tile.name
+                // }) // filter for barcodes
+                .attr("class", (d) => {
+
+                    return "class" + d.tile.name + "Count"
+                })
+                .attr('x', (d) => {
+                    return x(d.local_max + 30)
+                    // return (x(d.tile.start) + x(d.tile.end)) / 2
+                })
+                .attr('y', (d) => {
+                    return y(d.id + 1) + (.5 * y.bandwidth())
+                })
+                .text(function (d) {
+                    if (countCheckWhich in d.count_each) {
+                        return "(" + d.count_each[countCheckWhich] + ")"
+                    }
+
+                })
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
+                .style("font-size", () => {
+                    switch (currentNumShowing) {
+                        case 20:
+                            return "15px"
+                        case 50:
+                            return "9px"
+                        case 100:
+                            return "5px"
+                    }
+                })
+                .style("opacity", 1)
 
 
         }

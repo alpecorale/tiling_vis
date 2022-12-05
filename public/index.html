@@ -70,7 +70,7 @@
     </select> -->
 
     <br />
-    <div class="container">
+    <div style="padding-left: 5%;">
 
         <div class="mb-3 row">
             <label class="col-sm-2 col-form-label" for="inputFile">Tiling Data Input:</label>
@@ -115,9 +115,11 @@
 
     </div>
     <br />
+    <hr />
 
     <br />
-    <div class="container" id="visOptions" style="display: none;">
+    <div id="visOptions" style="display: none; padding-left: 5%;">
+        <h4>Vis Tools:</h4>
         <div class="mb-3 row">
             <p class="col-sm-2">Show first: </p>
             <select class="col-sm-1" id="showFirstSelect">
@@ -130,6 +132,14 @@
             <p class="col-sm-2">Turn off hover box: </p>
             <input type="checkbox" class="col-sm-1 form-check-input" id="hoverCheckbox">
         </div>
+        <div class="mb-3 row">
+            <p class="col-sm-2">Show Count for: </p>
+            <select class="col-sm-2" id="countWhich">
+                <option value="">None</option>
+
+            </select>
+            
+        </div>
         <!-- <div class="mb-3 row">
             <p class="col-sm-2">Turn off hover box: </p>
             <input type="checkbox" class="col-sm-1" id="hoverCheckbox">
@@ -140,9 +150,11 @@
 
 
     <!-- Create a div where the graph will take place -->
-    <div id="my_dataviz">
-
+    <div class="mb-3 row">
+        <div id="my_dataviz" class="col-md-9"></div>
+        <div id="my_dataviz_legend" class="col-md-3"></div>
     </div>
+
 
     <!-- <div>
         <h3>Supplementary Visualizations</h3>
