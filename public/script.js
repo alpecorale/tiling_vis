@@ -1,5 +1,18 @@
 console.log(d3.version)
 
+jscolor.presets.default = {
+    position: 'right',
+    palette: [
+        '#000000', '#7d7d7d', '#870014', '#ec1c23', '#ff7e26',
+        '#fef100', '#22b14b', '#00a1e7', '#3f47cc', '#a349a4',
+        '#ffffff', '#c3c3c3', '#b87957', '#feaec9', '#ffc80d',
+        '#eee3af', '#b5e61d', '#99d9ea', '#7092be', '#c8bfe7',
+    ],
+    // paletteCols: 12,
+    //hideOnPaletteClick: true,
+};
+
+
 let groupByFirst = []
 let allCleanOptions = []
 
@@ -87,94 +100,192 @@ async function loadVis() {
         let data2 = []
 
         // data = data.slice(0, 101)
+        const whichFormat = document.getElementById('fileFormatLoad').value
 
         // fix tiles section to be array of objects
         data.map((d, i) => {
 
-            // // bobs data
-            // let stringArr = d.tiles.split(',')
 
-            // let tileArr = []
-            // stringArr.forEach((v) => {
-            //     let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't', 'size': 0 }
-            //     obj.name = v.split('[')[0]
-            //     obj.start = v.split('[')[1].split(']')[0].split('-')[0]
-            //     obj.end = v.split('[')[1].split(']')[0].split('-')[1]
-            //     obj.strand = v.split('(')[1].split(')')[0]
-            //     obj.size = obj.end - obj.start
-            //     tileArr.push(obj)
-            // })
-            // d.tiles = tileArr
-            // d.num_tiles = tileArr.length
+            if (whichFormat === 'bob') {
+
+                // bobs data
+                let stringArr = d.tiles.split(',')
+
+                let tileArr = []
+                let localMaxNum = 0
+                let count_each_obj = {}
+
+                stringArr.forEach((v) => {
+                    let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't', 'size': 0 }
+                    obj.name = v.split('[')[0]
+                    obj.start = v.split('[')[1].split(']')[0].split('-')[0]
+                    obj.end = v.split('[')[1].split(']')[0].split('-')[1]
+                    obj.strand = v.split('(')[1].split(')')[0]
+                    obj.size = obj.end - obj.start
+                    tileArr.push(obj)
+
+                    if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
+
+                    // handle count each object
+                    if (obj.name in count_each_obj) {
+                        count_each_obj[obj.name] = count_each_obj[obj.name] + 1
+                    } else {
+                        count_each_obj[obj.name] = 1
+                    }
+
+                })
+                // d.count = d.count // should already be set
+                // d.dist = d.dist // should already be set
+
+                d.tiles = tileArr
+                d.num_tiles = tileArr.length
+                d.local_max = localMaxNum
+                d.count_each = count_each_obj
+                d.total_length = localMaxNum
 
 
-            // // get read coverage
-            // let tileCov = 0
-            // tileArr.forEach((x) => {
-            //     let dif = x.end - x.start
-            //     tileCov += dif
-            // })
+                // get read coverage
+                let tileCov = 0
+                tileArr.forEach((x) => {
+                    let dif = x.end - x.start
+                    tileCov += dif
+                })
 
-            // tileCov = (tileCov / maxReadNum) * 100
-            // tileCov = Math.round(tileCov * 100) / 100
-            // d.coverage = tileCov
-            // d.readID = i
+                // get maxReadNum 
+                if (localMaxNum > maxReadNum) {
+                    maxReadNum = localMaxNum
+                }
+                // maxReadNum = 4000
+
+                tileCov = (tileCov / maxReadNum) * 100
+                tileCov = Math.round(tileCov * 100) / 100
+                d.coverage = tileCov
+                d.readID = i
+            }
 
 
-            // parhams data
-            d.count = d.Length
-            d.dist = d.count / 100000 // distribution really doesnt matter
-            let stringArr = d.String.split(':')
-            let positionsArr = d.Positions.split(":")
-            let tileArr = []
-            let localMaxNum = 0
-            let count_each_obj = {}
-            stringArr.forEach((v, vi) => {
-                let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': 't' }
+            if (whichFormat === 'parham') {
+                // parhams data
+                d.count = d.Length // length not count
+                d.total_length = d.Length
+                d.dist = d.Length / 100000 // distribution really doesnt matter
+                let stringArr = d.String.split(':')
+                let positionsArr = d.Positions.split(":")
+                let tileArr = []
+                let localMaxNum = 0
+                let count_each_obj = {}
+                stringArr.forEach((v, vi) => {
+                    let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': '+', 'size': 0 }
 
-                // clean names of + and other junk
-                let cleanName = v.slice(1)
-                cleanName = cleanName.split('+').join('_')
+                    // clean names of + and other junk
+                    let cleanName = v.slice(1)
+                    cleanName = cleanName.split('+').join('_')
 
-                obj.name = cleanName // maybe we should join name and strand tg and set up color map to do different shades for each
-                obj.start = positionsArr[vi].split('-')[0]
-                obj.end = positionsArr[vi].split('-')[1]
-                obj.strand = v.slice(0, 1)
-                obj.size = obj.end - obj.start
-                tileArr.push(obj)
+                    obj.name = cleanName // maybe we should join name and strand tg and set up color map to do different shades for each
+                    obj.start = positionsArr[vi].split('-')[0]
+                    obj.end = positionsArr[vi].split('-')[1]
+                    obj.strand = v.slice(0, 1)
+                    obj.size = obj.end - obj.start
+                    tileArr.push(obj)
 
-                //console.log('obj end', obj.end)
-                if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
+                    //console.log('obj end', obj.end)
+                    if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
 
-                // handle count each object
-                if (cleanName in count_each_obj) {
-                    count_each_obj[cleanName] = count_each_obj[cleanName] + 1
-                } else {
-                    count_each_obj[cleanName] = 1
+                    // handle count each object
+                    if (cleanName in count_each_obj) {
+                        count_each_obj[cleanName] = count_each_obj[cleanName] + 1
+                    } else {
+                        count_each_obj[cleanName] = 1
+                    }
+
+
+                })
+                d.tiles = tileArr
+                d.num_tiles = tileArr.length
+                d.local_max = localMaxNum
+                d.count_each = count_each_obj
+
+                // get read coverage
+                let tileCov = 0
+                tileArr.forEach((x) => {
+                    let dif = x.end - x.start
+                    tileCov += dif
+                })
+
+                // get maxReadNum 
+                if (localMaxNum > maxReadNum) {
+                    maxReadNum = localMaxNum
                 }
 
+                tileCov = (tileCov / maxReadNum) * 100 // lol compute after maxReadNum or get Infinity
+                tileCov = Math.round(tileCov * 100) / 100
+                d.coverage = tileCov
+                d.readID = d.ReadID
+            }
 
-            })
-            d.tiles = tileArr
-            d.num_tiles = tileArr.length
-            d.local_max = localMaxNum
-            d.count_each = count_each_obj
+            if (whichFormat === 'gustavo') {
+                // gustavo data
+                d.count = parseInt(d.Length) // length not count
+                d.total_length = parseInt(d.Length)
+                d.dist = parseInt(d.Length) / 100000 // distribution really doesnt matter
+                let stringArr = d.String.split(':')
+                let positionsArr = d.Positions.split(":")
+                let tileArr = []
+                let localMaxNum = 0
+                let count_each_obj = {}
+                stringArr.forEach((v, vi) => {
+                    let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': '+', 'size': 0 }
 
-            // get read coverage
-            let tileCov = 0
-            tileArr.forEach((x) => {
-                let dif = x.end - x.start
-                tileCov += dif
-            })
+                    // clean names of + and other junk
+                    let cleanName = v
+                    if (v.slice(0, 1) === "+" || v.slice(0, 1) === '-') {
+                        cleanName = cleanName.slice(1)
+                    }
+                    cleanName = cleanName.split('+').join('_')
+                    cleanName = cleanName.split('.').join('')
+                    cleanName = cleanName.split('/').join('bug')
+                    cleanName = cleanName.split('|').join('BUG')
 
-            tileCov = (tileCov / maxReadNum) * 100
-            tileCov = Math.round(tileCov * 100) / 100
-            d.coverage = tileCov
-            d.readID = d.ReadID
+                    obj.name = cleanName // maybe we should join name and strand tg and set up color map to do different shades for each
+                    obj.start = positionsArr[vi].split('-')[0]
+                    obj.end = positionsArr[vi].split('-')[1]
+                    obj.strand = v.slice(0, 1)
+                    obj.size = obj.end - obj.start
+                    tileArr.push(obj)
 
-            // get maxReadNum //um idk
-            if (localMaxNum > maxReadNum) {
-                maxReadNum = localMaxNum
+                    //console.log('obj end', obj.end)
+                    if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
+
+                    // handle count each object
+                    if (cleanName in count_each_obj) {
+                        count_each_obj[cleanName] = count_each_obj[cleanName] + 1
+                    } else {
+                        count_each_obj[cleanName] = 1
+                    }
+
+
+                })
+                d.tiles = tileArr
+                d.num_tiles = tileArr.length
+                d.local_max = localMaxNum
+                d.count_each = count_each_obj
+
+                // get read coverage
+                let tileCov = 0
+                tileArr.forEach((x) => {
+                    let dif = x.end - x.start
+                    tileCov += dif
+                })
+
+                // get maxReadNum 
+                if (localMaxNum > maxReadNum) {
+                    maxReadNum = localMaxNum
+                }
+
+                tileCov = (tileCov / maxReadNum) * 100 // lol compute after maxReadNum or get Infinity
+                tileCov = Math.round(tileCov * 100) / 100
+                d.coverage = tileCov
+                d.readID = d.ReadID
             }
 
 
@@ -255,27 +366,45 @@ async function loadVis() {
 
 
 
-        // // sort data when needed 
-        // d3.select('#sortBySelect').on("change", async function () {
-        //     const selectedOption = this.value
-        //     switch (selectedOption) {
-        //         case 'count':
-        //             data.sort((a, b) => {
-        //                 return d3.descending(a.count, b.count)
-        //             })
-        //             break;
+        // sort data when needed 
+        d3.select('#sortBySelect').on("change", async function () {
+            const selectedOption = this.value
+            switch (selectedOption) {
+                case 'count':
+                    data.sort((a, b) => {
+                        return d3.descending(a.count, b.count)
+                    })
+                    break;
 
-        //         case 'coverage':
-        //             data.sort((a, b) => {
-        //                 return d3.descending(a.coverage, b.coverage)
-        //             })
-        //             console.log(data)
-        //             break;
-        //     }
-        //     data2 = makeData2()
-        //     d3.select("#my_dataviz").html("") // empty old and make new chart
-        //     makePlot()
-        // })
+                case 'length':
+                    data.sort((a, b) => {
+                        return d3.descending(a.total_length, b.total_length)
+                    })
+                    break;
+
+                case 'coverage':
+                    data.sort((a, b) => {
+                        return d3.descending(a.coverage, b.coverage)
+                    })
+                    break;
+
+                case 'lengthLow':
+                    data.sort((a, b) => {
+                        return d3.ascending(a.total_length, b.total_length)
+                    })
+                    break;
+
+                case 'coverageLow':
+                    data.sort((a, b) => {
+                        return d3.ascending(a.coverage, b.coverage)
+                    })
+                    break;
+            }
+            data2 = makeData2(data.slice(0, currentNumShowing))
+            d3.select("#my_dataviz").html("")
+            d3.select('#my_dataviz_legend').html("")
+            makePlot(data.slice(0, currentNumShowing), data2)
+        })
 
         // fix tiles to each be an independent line
         function makeData2(inputData) {
@@ -337,8 +466,14 @@ async function loadVis() {
 
 
         // populate countWhich select box
-
+        document.getElementById('countWhich').innerHTML = ""
+        let noneOpt = document.createElement("option")
+        noneOpt.value = ""
+        noneOpt.innerHTML = "None"
+        document.getElementById('countWhich').appendChild(noneOpt)
         keys.forEach(key => {
+
+
             let opt = document.createElement("option");
             opt.value = key;
             opt.innerHTML = key;
@@ -454,11 +589,6 @@ async function loadVis() {
                 .style("cursor", 'pointer')
                 .on("click", (event, d) => {
 
-                    // //  is the element currently visible ?
-                    // let currentOpacity = d3.selectAll((".class" + d)).style("opacity")
-                    // // Change the opacity: from 0 to 1 or from 1 to 0
-                    // d3.selectAll(".class" + d).transition().style("opacity", currentOpacity == 1 ? 0 : 1)
-
                     let currentColor = d3.selectAll((".class" + d)).style("fill")
                     d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
                 })
@@ -480,7 +610,9 @@ async function loadVis() {
                     return "class" + d
                 })
                 .style("fill", function (d) { return color(d) })
-                .text(function (d) { return d })
+                .text(function (d) { 
+                    return d.split('bug').join('/').split('BUG').join('|') // this is dumb
+                })
                 .attr("text-anchor", "left")
                 .style("alignment-baseline", "middle")
                 .style("cursor", 'pointer')
@@ -496,10 +628,27 @@ async function loadVis() {
                     d3.selectAll(".class" + d + "Strand").transition().style("opacity", currentOpacity == 1 ? 0 : 1)
                 })
 
+            // // add button in legend
+            // svgLegend.selectAll("colorChanger")
+            //     .data(keys)
+            //     .enter()
+            //     .append('button')
+            //     .attr('x', 150)
+            //     .attr("y", function (d, i) { return i * 25 })
+            //     .style('width', '25px')
+            //     .style('fill', (d) => {return color(d)})
+            //     //.text('hi')
+            //     .attr('data-jscolor', (d) => {
+            //         let currentColor = d3.selectAll((".class" + d)).style("fill")
+            //         return `{value:'` + currentColor +  `}`
+            //         // d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
+            //     })
+
+
 
             /*
             *
-            * TILe
+            * TILE
             * 
             */
 
@@ -520,13 +669,25 @@ async function loadVis() {
                     return color(d.tile.name)
 
                 })
-                .attr("stroke", "grey")
+                .attr("stroke", "black")
                 .on("mouseover", function (event, d) {
                     if (hoverCheck) { return }
                     tooltip.transition()
                         .duration(200)
                         .style("opacity", .9);
-                    tooltip.html("Read ID: " + d.read_ID + "<br/>" + "Type: " + d.tile.name + "<br/>" + "Strandedness: " + d.tile.strand + "<br/>" + "Read Count: " + d.count + " <br/>" + "Coverage: " + d.coverage + "%" + "<br/ >" + "[Start-End]: [" + d.tile.start + '-' + d.tile.end + ']')
+                    tooltip.html(() => {
+                        let toolTipMessage = ''
+
+                        toolTipMessage += "Read ID: " + d.read_ID + "<br/>"
+                        toolTipMessage += "Category: " + d.tile.name.split('bug').join('/').split('BUG').join('|') + "<br/>" // this is dumb
+                        toolTipMessage += "Strandedness: " + d.tile.strand + "<br/>"
+                        toolTipMessage += "Length: " + d.count + " <br/>"
+                        toolTipMessage += "Coverage: " + d.coverage + "%" + "<br/ >"
+                        toolTipMessage += "[Start-End]: [" + d.tile.start + '-' + d.tile.end + ']' + "<br/ >"
+                        toolTipMessage += "Size: " + d.tile.size + "nt"
+
+                        return toolTipMessage
+                    })
                         .style("top", (event.pageY + 30) + "px")
                         .style("left", (event.pageX + 50) + "px");
                 })
@@ -582,12 +743,10 @@ async function loadVis() {
                 //     return d.tile.name
                 // }) // filter for barcodes
                 .attr("class", (d) => {
-
                     return "class" + d.tile.name + "Count"
                 })
                 .attr('x', (d) => {
                     return x(d.local_max + 30)
-                    // return (x(d.tile.start) + x(d.tile.end)) / 2
                 })
                 .attr('y', (d) => {
                     return y(d.id + 1) + (.5 * y.bandwidth())

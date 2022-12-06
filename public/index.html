@@ -31,6 +31,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!--My Script-->
+    <script type="text/javascript" src="jscolor.js" defer></script>
     <script type="text/javascript" src="script.js" defer></script>
 </head>
 
@@ -63,11 +64,7 @@
     </svg> -->
     <!-- <button class="btn btn-primary" onclick="sortCount()">Sort by Count</button>
     <button class="btn btn-primary" onclick="sortCoverage()">Sort by Coverage</button> -->
-    <!-- <p>Sort By: </p>
-    <select id="sortBySelect">
-        <option value="count" selected>Count</option>
-        <option value="coverage">Coverage</option>
-    </select> -->
+
 
     <br />
     <div style="padding-left: 5%;">
@@ -83,7 +80,7 @@
                 <select class="form-control" id="fileFormat">
                     <option value="parham">Parham's</option>
                     <option value="bob" disabled>Bob's</option>
-                    <option value="gustavo" disabled>Gustavo's</option>
+                    <option value="gustavo">Gustavo's</option>
                 </select>
             </div>
         </div>
@@ -95,6 +92,11 @@
             <div class="col-sm-6" style="display: flex;">
                 <p>Please give 3-5mins to let larger data sets be uploaded.</p>
             </div>
+
+            <!-- Color Picker Button -->
+            <!-- <button data-jscolor="{value:'rgba(51,153,255,1)'}" style="width: 50px;"></button> -->
+
+
         </div>
 
         <div class="mb-3 row">
@@ -107,8 +109,16 @@
                     <option value="Final_BC_Vectors_ONT_Annotated_PH">Final_BC_Vectors_ONT_Annotated_PH</option>
                 </select>
             </div>
-            <div class="col-sm-2" style="display: flex;"></div>
-            <div class="col-sm-3" style="display: flex;">
+            <label class="col-sm-1 col-form-label" for="fileFormatLoad">File Format:</label>
+            <div class="col-sm-2" style="display: flex;">
+                <select class="form-control" id="fileFormatLoad">
+                    <option value="parham">Parham's</option>
+                    <option value="bob">Bob's</option>
+                    <option value="gustavo">Gustavo's</option>
+                </select>
+            </div>
+            <div class="col-sm-1" style="display: flex;"></div>
+            <div class="col-sm-2" style="display: flex;">
                 <button id="loadData" class="btn btn-primary" onclick="loadVis()">Load Data Set Viz</button>
             </div>
         </div>
@@ -135,15 +145,19 @@
         <div class="mb-3 row">
             <p class="col-sm-2">Show Count for: </p>
             <select class="col-sm-2" id="countWhich">
-                <option value="">None</option>
-
             </select>
-            
+            <div class="col-sm-1"></div>
+            <p class="col-sm-2">Sort By: </p>
+            <select id="sortBySelect" class="col-sm-2">
+                <option value="" selected disabled>None</option>
+                <option value="length">Length (H->L)</option>
+                <option value="coverage">Coverage (H->L)</option>
+                <option value="lengthLow">Length (L->H)</option>
+                <option value="coverageLow">Coverage  (L->H)</option>
+                <option value="count" disabled>Count</option>
+            </select>
         </div>
-        <!-- <div class="mb-3 row">
-            <p class="col-sm-2">Turn off hover box: </p>
-            <input type="checkbox" class="col-sm-1" id="hoverCheckbox">
-        </div> -->
+
 
         <!-- <button id="greyColorScheme" class="btn btn-primary" onclick="changeColorScheme('grey')">Show ITR's and Barcodes</button> -->
     </div>
