@@ -354,7 +354,7 @@ async function loadVis() {
             makePlot(data.slice(0, currentNumShowing), data2)
         })
 
-        // count Each Type
+        // show count for Each Type
         let countCheckWhich = ''
         d3.select('#countWhich').on("change", async function () {
             countCheckWhich = document.getElementById('countWhich').value
@@ -462,7 +462,6 @@ async function loadVis() {
 
         keys = [...new Set(keys)]
         console.log(keys)
-        // ['Backbone', 'hPAH', 'RNA', 'LNA', 'BC_SV40', 'ITR', 'SA_2A', '5_MCS', '3_MCS']
 
 
         // populate countWhich select box
@@ -476,7 +475,7 @@ async function loadVis() {
 
             let opt = document.createElement("option");
             opt.value = key;
-            opt.innerHTML = key;
+            opt.innerHTML = key.split('bug').join('/').split('BUG').join('|'); // ik its dumb
 
             // then append it to the select element
             document.getElementById('countWhich').appendChild(opt);
