@@ -85,6 +85,20 @@
             </div>
         </div>
 
+        <div style="display: flex;">
+            <label for="clusteringSwitch">Perform Clustering on Dataset</label>
+            <div class="form-check form-switch" style="padding-left: 5%;">
+                <input class="form-check-input" type="checkbox" id="clusteringSwitch">
+            </div>
+           
+        </div>
+        <br />
+        <div id="clusteringDiv" style="display: none;">
+            <label for="clusteringDensity">Clustering Density (nt)</label>
+            <input type="number" id="clusteringDensity" value="0">
+        </div>
+        <br />
+
         <div class="mb-3 row">
             <div class="col-sm-3" style="display: flex;">
                 <button id="loadData" class="btn btn-primary" onclick="loadFile()">Upload New Data Set</button>
@@ -99,6 +113,7 @@
 
 
         </div>
+
 
         <div class="mb-3 row">
             <label class="col-sm-2 col-form-label" for="pickDataset">Pick Dataset:</label>
@@ -163,9 +178,9 @@
             </select>
         </div>
         <div style="display: flex;">
-            <label  for="changeColorSwitch">Change Colors</label>
+            <label for="changeColorSwitch">Change Colors</label>
             <div class="form-check form-switch" style="padding-left: 5%;">
-                <input class="form-check-input"  type="checkbox" id="changeColorSwitch">
+                <input class="form-check-input" type="checkbox" id="changeColorSwitch">
             </div>
 
         </div>

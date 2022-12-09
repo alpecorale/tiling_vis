@@ -39,6 +39,15 @@ document.getElementById('changeColorSwitch').addEventListener('change', () => {
     }
 })
 
+// opens and closes clustering density
+document.getElementById('clusteringSwitch').addEventListener('change', () => {
+    if (document.getElementById('clusteringDiv').style.display === 'flex'){
+        document.getElementById('clusteringDiv').style.display = 'none'
+    } else {
+        document.getElementById('clusteringDiv').style.display = 'flex'
+    }
+})
+
 // get all file options
 async function getAllCleanOptions() {
     // call get fxn
@@ -73,8 +82,9 @@ getAllCleanOptions()
 async function loadFile() {
 
     const rawFile = document.getElementById('inputFile').files // rawFile
-
     const fileFormat = document.getElementById('fileFormat').value // format
+    const clustering = document.getElementById('clusteringSwitch').checked
+    const density = document.getElementById('clusteringDensity').value // clustering density 
 
     let rawFileToPass = new FormData()
 
@@ -82,6 +92,8 @@ async function loadFile() {
         rawFileToPass.append('file', x)
     })
     rawFileToPass.append('format', fileFormat)
+    rawFileToPass.append('clustering', clustering)
+    rawFileToPass.append('density', density)
 
     // download References to cluster
     // going to need to wrap in something to see if Ref needs to be uploaded
@@ -898,7 +910,7 @@ async function loadVis() {
                     x.domain([0, maxReadNum + (maxReadNum * .05)])
                 } else {
                     x.domain([x.invert(extent[0]), x.invert(extent[1])])
-                    bar.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
+                    xAxis.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
                 }
 
 
