@@ -24,7 +24,7 @@ elif format == 'gustavo':
     # 'skiprows' skips the header # 'nrows=50' takes only first 50 rows
     # df = pd.read_csv('raw_data/Final_BC_Vectors_PacBio_Annotated_PH_2.csv', nrows=150)
     # df = pd.read_csv('raw_data/' + input_file_path, names = ["ReadID", "Length", "Positions", "String"], skiprows=1, nrows=50)
-    df = pd.read_csv('raw_data/' + input_file_path)
+    df = pd.read_csv('raw_data/' + input_file_path, names = ["ReadID", "Length", "Positions", "String"], sep='\t')
 
     result = df.to_json(orient="records")
     parsed = json.loads(result)
@@ -35,12 +35,12 @@ elif format == 'gustavo':
         outfile.write(json_object)
 
 elif format == 'bob':
-    bobFile = open('raw_data/' + 'og_pac-76.tile.counts', 'r')
-    # bobFile = open('raw_data/' + input_file_pat, 'r')
+    # bobFile = open('raw_data/' + 'og_pac-76.tile.counts', 'r')
+    bobFile = open('raw_data/' + input_file_path, 'r')
     bobLines = bobFile.readlines()
 
-    # outputFile = open('public/clean_data/' + input_file_path.split('.'[0]) + ".json", "w")
-    outputFile = open('public/clean_data/delete.json', "w")
+    outputFile = open('public/clean_data/' + input_file_path.split('.'[0]) + ".json", "w")
+    # outputFile = open('public/clean_data/delete.json', "w")
     outputFile.write('[\n')
     lastLine = len(bobLines)-1
     for idline, line in enumerate(bobLines):

@@ -78,9 +78,9 @@
             <label class="col-sm-2 col-form-label" for="fileFormat">File Format:</label>
             <div class="col-sm-2" style="display: flex;">
                 <select class="form-control" id="fileFormat">
-                    <option value="parham">Parham's</option>
-                    <option value="bob">Bob's</option>
                     <option value="gustavo">Gustavo's</option>
+                    <option value="bob">Bob's</option>
+                    <option value="parham">Parham's</option>
                 </select>
             </div>
         </div>
@@ -91,6 +91,7 @@
             </div>
             <div class="col-sm-6" style="display: flex;">
                 <p>Please give 3-5mins to let larger data sets be uploaded.</p>
+                <a href="/info">Additional Info</a>
             </div>
 
             <!-- Color Picker Button -->
@@ -112,9 +113,9 @@
             <label class="col-sm-1 col-form-label" for="fileFormatLoad">File Format:</label>
             <div class="col-sm-2" style="display: flex;">
                 <select class="form-control" id="fileFormatLoad">
-                    <option value="parham">Parham's</option>
-                    <option value="bob">Bob's</option>
                     <option value="gustavo">Gustavo's</option>
+                    <option value="bob">Bob's</option>
+                    <option value="parham">Parham's</option>
                 </select>
             </div>
             <div class="col-sm-1" style="display: flex;"></div>
@@ -141,6 +142,9 @@
             <div class="col-sm-1"></div>
             <p class="col-sm-2">Turn off hover box: </p>
             <input type="checkbox" class="col-sm-1 form-check-input" id="hoverCheckbox">
+            <div class="col-sm-1"></div>
+            <p class="col-sm-2">Zoom: </p>
+            <input type="checkbox" class="col-sm-1 form-check-input" id="brushCheckbox">
         </div>
         <div class="mb-3 row">
             <p class="col-sm-2">Show Count for: </p>
@@ -149,11 +153,12 @@
             <div class="col-sm-1"></div>
             <p class="col-sm-2">Sort By: </p>
             <select id="sortBySelect" class="col-sm-2">
-                <option value="" selected disabled>None</option>
-                <option value="length">Length (H->L)</option>
+                <!-- <option value="" selected disabled>None</option> -->
+                <!-- <option value="readId">ReadId</option> -->
+                <!-- <option value="length">Length (H->L)</option>
                 <option value="coverage">Coverage (H->L)</option>
                 <option value="lengthLow">Length (L->H)</option>
-                <option value="coverageLow">Coverage  (L->H)</option>
+                <option value="coverageLow">Coverage  (L->H)</option> -->
                 <option value="count" disabled>Count</option>
             </select>
         </div>
@@ -168,6 +173,10 @@
         <div id="my_dataviz" class="col-md-9"></div>
         <div id="my_dataviz_legend" class="col-md-3"></div>
     </div>
+    <br />
+    <br />
+    <br />
+
 
 
     <!-- <div>

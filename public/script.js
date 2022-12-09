@@ -1,3 +1,4 @@
+
 console.log(d3.version)
 
 jscolor.presets.default = {
@@ -342,12 +343,15 @@ async function loadVis() {
         let hoverCheck = false
         d3.select('#hoverCheckbox').on("change", async function () {
             hoverCheck = !hoverCheck
-            // if (hoverCheck) {
-            //     // turn hover off
-            // } else {
-            //     // turn hover on
+            data2 = makeData2(data.slice(0, currentNumShowing))
+            d3.select("#my_dataviz").html("") // empty old and make new chart
+            d3.select('#my_dataviz_legend').html("")
+            makePlot(data.slice(0, currentNumShowing), data2)
+        })
 
-            // }
+        let brushCheck = false
+        d3.select('#brushCheckbox').on("change", async function () {
+            brushCheck = !brushCheck
             data2 = makeData2(data.slice(0, currentNumShowing))
             d3.select("#my_dataviz").html("") // empty old and make new chart
             d3.select('#my_dataviz_legend').html("")
@@ -370,6 +374,11 @@ async function loadVis() {
         d3.select('#sortBySelect').on("change", async function () {
             const selectedOption = this.value
             switch (selectedOption) {
+                // case 'readId':
+                //     data.sort((a, b) => {
+                //         return d3.descending(a.readID, b.readID)
+                //     })
+                //     break;
                 case 'count':
                     data.sort((a, b) => {
                         return d3.descending(a.count, b.count)
@@ -399,6 +408,30 @@ async function loadVis() {
                         return d3.ascending(a.coverage, b.coverage)
                     })
                     break;
+
+                default:
+                    // pre sort with length to look pretty
+                    data.sort((a, b) => {
+                        return d3.descending(a.total_length, b.total_length)
+                    })
+
+                    // sort by selected object count
+                    data.sort((a, b) => {
+                        // check that field exists (handles output if one or both dont)
+                        if (!a.count_each[selectedOption] && !b.count_each[selectedOption]) {
+                            return 0
+                        }
+                        if (!a.count_each[selectedOption] && b.count_each[selectedOption]) {
+                            return 1
+                        }
+                        if (a.count_each[selectedOption] && !b.count_each[selectedOption]) {
+                            return -1
+                        }
+                        return d3.descending(a.count_each[selectedOption], b.count_each[selectedOption])
+                    })
+
+                    break;
+
             }
             data2 = makeData2(data.slice(0, currentNumShowing))
             d3.select("#my_dataviz").html("")
@@ -479,6 +512,36 @@ async function loadVis() {
 
             // then append it to the select element
             document.getElementById('countWhich').appendChild(opt);
+
+
+        })
+        // populate sort by
+        document.getElementById('sortBySelect').innerHTML = ""
+        let noneOpt2 = document.createElement("option")
+        noneOpt2.value = ""
+        noneOpt2.innerHTML = "None"
+        document.getElementById('sortBySelect').appendChild(noneOpt2)
+        const preExistingOptions = [
+            { "value": "length", "text": "Length (H->L)" },
+            { "value": "lengthLow", "text": "Length (L->H)" },
+            { "value": "coverage", "text": "Coverage (H->L)" },
+            { "value": "coverageLow", "text": "Coverage (L->H)" },
+        ]
+        preExistingOptions.forEach(key => {
+            let opt2 = document.createElement("option");
+            opt2.value = key.value;
+            opt2.innerHTML = key.text;
+
+
+            document.getElementById('sortBySelect').appendChild(opt2)
+        })
+        keys.forEach(key => {
+            let opt2 = document.createElement("option");
+            opt2.value = key;
+            opt2.innerHTML = key.split('bug').join('/').split('BUG').join('|'); // ik its dumb
+
+
+            document.getElementById('sortBySelect').appendChild(opt2)
         })
 
 
@@ -518,6 +581,22 @@ async function loadVis() {
             let zoom = d3.zoom()
                 .on('zoom', handleZoom);
 
+            // let brush = d3.brushX().extent( [ [0,100], [400,300] ] )
+
+            // Add a clipPath: everything out of this area won't be drawn.
+            var clip = svg.append("defs").append("svg:clipPath")
+                .attr("id", "clip")
+                .append("svg:rect")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("x", 0)
+                .attr("y", 0);
+
+            // Add brushing
+            var brush = d3.brushX()                 // Add the brush feature using the d3.brush function
+                .extent([[0, 0], [width, height]]) // initialise the brush area: start at 0,0 and finishes at width,height: it means I select the whole graph area
+                .on("end", updateChart) // Each time the brush selection changes, trigger the 'updateChart' function
+
             // d3.select('svg').call(zoom); // to turn zoom back on
 
 
@@ -543,20 +622,26 @@ async function loadVis() {
             var x = d3.scaleLinear()
                 .domain([0, maxReadNum + (maxReadNum * .05)])
                 .range([0, width]);
-            svg.append("g")
+            let xAxis = svg.append("g")
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x))
-                .selectAll("text")
+
+                xAxis.selectAll("text")
                 .attr("transform", "translate(-10,0)rotate(-45)")
-                .style("text-anchor", "end");
+                .style("text-anchor", "end")
+
+
+
 
             // Y axis
             var y = d3.scaleBand()
                 .range([0, height])
+                // .domain(inputData.map(function (d, i) { return d.readID; }))
                 .domain(inputData.map(function (d, i) { return i + 1; }))
                 .padding(.1);
             svg.append("g")
                 .call(d3.axisLeft(y))
+
 
             // color palette = one color per type
             var color = d3.scaleOrdinal()
@@ -609,7 +694,7 @@ async function loadVis() {
                     return "class" + d
                 })
                 .style("fill", function (d) { return color(d) })
-                .text(function (d) { 
+                .text(function (d) {
                     return d.split('bug').join('/').split('BUG').join('|') // this is dumb
                 })
                 .attr("text-anchor", "left")
@@ -652,7 +737,10 @@ async function loadVis() {
             */
 
             //Bars
-            svg.selectAll("myRect")
+            let bar = svg.append('g')
+                .attr("clip-path", "url(#clip)")
+
+            bar.selectAll("myRect")
                 .data(inputData2)
                 .enter()
                 .append("rect")
@@ -687,8 +775,8 @@ async function loadVis() {
 
                         return toolTipMessage
                     })
-                        .style("top", (event.pageY + 30) + "px")
-                        .style("left", (event.pageX + 50) + "px");
+                        .style("top", (event.pageY) + "px")
+                        .style("left", (event.pageX + 80) + "px");
                 })
                 .on("mouseout", function (d) {
                     if (hoverCheck) { return }
@@ -697,6 +785,16 @@ async function loadVis() {
                         .style("opacity", 0);
                 });
 
+            if (brushCheck) {
+                bar.append("g")
+                    .attr("class", "brush")
+                    .call(brush);
+            }
+
+
+            // A function that set idleTimeOut to null
+            var idleTimeout
+            function idled() { idleTimeout = null; }
 
 
             // add plus or minus to barcodes
@@ -732,7 +830,7 @@ async function loadVis() {
                     }
                 })
                 .style("opacity", 0)
-
+                
             // add count specific at end of rows
             svg.selectAll("myCount")
                 .data(inputData2)
@@ -769,6 +867,51 @@ async function loadVis() {
                     }
                 })
                 .style("opacity", 1)
+
+
+            // A function that update the chart for given boundaries
+            function updateChart(event) {
+
+                extent = event.selection
+
+                // If no selection, back to initial coordinate. Otherwise, update X axis domain
+                if (!extent) {
+                    if (!idleTimeout) return idleTimeout = setTimeout(idled, 350); // This allows to wait a little bit
+                    x.domain([0, maxReadNum + (maxReadNum * .05)])
+                } else {
+                    x.domain([x.invert(extent[0]), x.invert(extent[1])])
+                    bar.select(".brush").call(brush.move, null) // This remove the grey brush area as soon as the selection has been done
+                }
+
+
+                // Update axis and circle position
+                xAxis.transition().duration(1000).call(d3.axisBottom(x))
+                xAxis.selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                bar.selectAll("rect")
+                    .transition().duration(1000)
+                    .attr("x", function (d) {
+                        if (!d.tile) { return }
+                        if (x(parseInt(d.tile.start)) < 0) {
+                            return 0
+                        }
+                        return x(parseInt(d.tile.start))
+                    }) // have the x value start at the start of first tile
+                    .attr("width", function (d) {
+                        if (!d.tile) { return }
+                        if (x(parseInt(d.tile.end)) < 0) { return 0 }
+                        if (x(parseInt(d.tile.start)) <= 0) {
+                            //if (x(parseInt(d.tile.end) <= 0)) {return 0}
+                            return x(parseInt(d.tile.end))
+                        }
+
+                        return x(parseInt(d.tile.end)) - x(parseInt(d.tile.start));
+                    })
+                // .attr("y", function (d, i) { return y(d.id + 1); })
+                // .attr("height", y.bandwidth())
+
+            }
 
 
         }

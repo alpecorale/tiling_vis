@@ -198,13 +198,19 @@ app.get('/testServerNav', async (req, res) => {
 
 })
 
+app.get('/info', (req, res) => {
+    res.sendFile(__dirname + '/public/info.html');
+    // res.send("starts new nodejs project")
 
+})
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
     // res.send("starts new nodejs project")
 
 })
+
+
 
 
 
