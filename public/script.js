@@ -90,7 +90,7 @@ async function loadFile() {
         body: rawFileToPass,
     }).catch((error) => ("Something went wrong!", error));
 
-
+    getAllCleanOptions()
 }
 
 
@@ -181,67 +181,65 @@ async function loadVis() {
                 d.readID = i
             }
 
+            
+            // if (whichFormat === 'parham') { // parhams data
+            //     d.count = d.Length // length not count
+            //     d.total_length = d.Length
+            //     d.dist = d.Length / 100000 // distribution really doesnt matter
+            //     let stringArr = d.String.split(':')
+            //     let positionsArr = d.Positions.split(":")
+            //     let tileArr = []
+            //     let localMaxNum = 0
+            //     let count_each_obj = {}
+            //     stringArr.forEach((v, vi) => {
+            //         let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': '+', 'size': 0 }
 
-            if (whichFormat === 'parham') {
-                // parhams data
-                d.count = d.Length // length not count
-                d.total_length = d.Length
-                d.dist = d.Length / 100000 // distribution really doesnt matter
-                let stringArr = d.String.split(':')
-                let positionsArr = d.Positions.split(":")
-                let tileArr = []
-                let localMaxNum = 0
-                let count_each_obj = {}
-                stringArr.forEach((v, vi) => {
-                    let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': '+', 'size': 0 }
+            //         // clean names of + and other junk
+            //         let cleanName = v.slice(1)
+            //         cleanName = cleanName.split('+').join('_')
 
-                    // clean names of + and other junk
-                    let cleanName = v.slice(1)
-                    cleanName = cleanName.split('+').join('_')
+            //         obj.name = cleanName // maybe we should join name and strand tg and set up color map to do different shades for each
+            //         obj.start = positionsArr[vi].split('-')[0]
+            //         obj.end = positionsArr[vi].split('-')[1]
+            //         obj.strand = v.slice(0, 1)
+            //         obj.size = obj.end - obj.start
+            //         tileArr.push(obj)
 
-                    obj.name = cleanName // maybe we should join name and strand tg and set up color map to do different shades for each
-                    obj.start = positionsArr[vi].split('-')[0]
-                    obj.end = positionsArr[vi].split('-')[1]
-                    obj.strand = v.slice(0, 1)
-                    obj.size = obj.end - obj.start
-                    tileArr.push(obj)
+            //         if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
 
-                    //console.log('obj end', obj.end)
-                    if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
+            //         // handle count each object
+            //         if (cleanName in count_each_obj) {
+            //             count_each_obj[cleanName] = count_each_obj[cleanName] + 1
+            //         } else {
+            //             count_each_obj[cleanName] = 1
+            //         }
+            //     })
 
-                    // handle count each object
-                    if (cleanName in count_each_obj) {
-                        count_each_obj[cleanName] = count_each_obj[cleanName] + 1
-                    } else {
-                        count_each_obj[cleanName] = 1
-                    }
+            //     d.tiles = tileArr
+            //     d.num_tiles = tileArr.length
+            //     d.local_max = localMaxNum
+            //     d.count_each = count_each_obj
+
+            //     // get read coverage
+            //     let tileCov = 0
+            //     tileArr.forEach((x) => {
+            //         let dif = x.end - x.start
+            //         tileCov += dif
+            //     })
+
+            //     // get maxReadNum 
+            //     if (localMaxNum > maxReadNum) {
+            //         maxReadNum = localMaxNum
+            //     }
+
+            //     tileCov = (tileCov / maxReadNum) * 100 // lol compute after maxReadNum or get Infinity
+            //     tileCov = Math.round(tileCov * 100) / 100
+            //     d.coverage = tileCov
+            //     d.readID = d.ReadID
+            // }
 
 
-                })
-                d.tiles = tileArr
-                d.num_tiles = tileArr.length
-                d.local_max = localMaxNum
-                d.count_each = count_each_obj
-
-                // get read coverage
-                let tileCov = 0
-                tileArr.forEach((x) => {
-                    let dif = x.end - x.start
-                    tileCov += dif
-                })
-
-                // get maxReadNum 
-                if (localMaxNum > maxReadNum) {
-                    maxReadNum = localMaxNum
-                }
-
-                tileCov = (tileCov / maxReadNum) * 100 // lol compute after maxReadNum or get Infinity
-                tileCov = Math.round(tileCov * 100) / 100
-                d.coverage = tileCov
-                d.readID = d.ReadID
-            }
-
-            if (whichFormat === 'gustavo') {
+            if (whichFormat === 'gustavo' || whichFormat === 'parham') {
                 // gustavo data
                 d.count = parseInt(d.Length) // length not count
                 d.total_length = parseInt(d.Length)
@@ -366,7 +364,7 @@ async function loadVis() {
             makePlot(data.slice(0, currentNumShowing), data2)
         })
 
-        let brushCheck = false
+        let brushCheck = true
         d3.select('#brushCheckbox').on("change", async function () {
             brushCheck = !brushCheck
             data2 = makeData2(data.slice(0, currentNumShowing))
@@ -689,7 +687,6 @@ async function loadVis() {
                 .style("fill", function (d) { return color(d) })
                 .style("cursor", 'pointer')
                 .on("click", (event, d) => {
-
                     let currentColor = d3.selectAll((".class" + d)).style("fill")
                     d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
                 })
@@ -807,7 +804,7 @@ async function loadVis() {
                 });
 
             if (brushCheck) {
-                bar.append("g")
+                xAxis.append("g")
                     .attr("class", "brush")
                     .call(brush);
             }
