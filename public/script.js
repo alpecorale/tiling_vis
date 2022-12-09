@@ -8,9 +8,7 @@ jscolor.presets.default = {
         '#fef100', '#22b14b', '#00a1e7', '#3f47cc', '#a349a4',
         '#ffffff', '#c3c3c3', '#b87957', '#feaec9', '#ffc80d',
         '#eee3af', '#b5e61d', '#99d9ea', '#7092be', '#c8bfe7',
-    ],
-    // paletteCols: 12,
-    //hideOnPaletteClick: true,
+    ]
 };
 
 
@@ -21,6 +19,25 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function updateColor(ele, key) {
+    let newColor = ele.toRGBString()
+
+    // turn all elements of key class into newColor
+    const els = document.getElementsByClassName(key)
+
+    Array.from(els).forEach((el) => {
+        el.style.fill = newColor
+    })
+}
+
+// opens and closes color switch div
+document.getElementById('changeColorSwitch').addEventListener('change', () => {
+    if (document.getElementById('colorChangerRow').style.display === 'flex'){
+        document.getElementById('colorChangerRow').style.display = 'none'
+    } else {
+        document.getElementById('colorChangerRow').style.display = 'flex'
+    }
+})
 
 // get all file options
 async function getAllCleanOptions() {
@@ -626,7 +643,7 @@ async function loadVis() {
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x))
 
-                xAxis.selectAll("text")
+            xAxis.selectAll("text")
                 .attr("transform", "translate(-10,0)rotate(-45)")
                 .style("text-anchor", "end")
 
@@ -712,23 +729,27 @@ async function loadVis() {
                     d3.selectAll(".class" + d + "Strand").transition().style("opacity", currentOpacity == 1 ? 0 : 1)
                 })
 
-            // // add button in legend
-            // svgLegend.selectAll("colorChanger")
-            //     .data(keys)
-            //     .enter()
-            //     .append('button')
-            //     .attr('x', 150)
-            //     .attr("y", function (d, i) { return i * 25 })
-            //     .style('width', '25px')
-            //     .style('fill', (d) => {return color(d)})
-            //     //.text('hi')
-            //     .attr('data-jscolor', (d) => {
-            //         let currentColor = d3.selectAll((".class" + d)).style("fill")
-            //         return `{value:'` + currentColor +  `}`
-            //         // d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
-            //     })
+                
+            // add button in legend // cant but can add another shape and give it .on("click") event
+            document.getElementById("colorChangerRow").innerHTML = ""
+            jscolor.install()
+            d3.select("#colorChangerRow").selectAll("colorChanger")
+                .data(keys)
+                .enter()
+                .append('button')
+                .text(d => {
+                    return d.split('bug').join('/').split('BUG').join('|')
+                })
+                .attr('data-jscolor', (d) => {
+                    let currentColor = d3.selectAll((".class" + d)).style("fill")
+                    return `{value:'` + currentColor +  `',` + `onChange: 'updateColor(this, "class` + d + `")'` + `}`
+                    // d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
+                })
+                
 
+                jscolor.install(); // needed to intialize color buttons
 
+                
 
             /*
             *
@@ -830,7 +851,7 @@ async function loadVis() {
                     }
                 })
                 .style("opacity", 0)
-                
+
             // add count specific at end of rows
             svg.selectAll("myCount")
                 .data(inputData2)
@@ -887,8 +908,8 @@ async function loadVis() {
                 // Update axis and circle position
                 xAxis.transition().duration(1000).call(d3.axisBottom(x))
                 xAxis.selectAll("text")
-                .attr("transform", "translate(-10,0)rotate(-45)")
-                .style("text-anchor", "end")
+                    .attr("transform", "translate(-10,0)rotate(-45)")
+                    .style("text-anchor", "end")
                 bar.selectAll("rect")
                     .transition().duration(1000)
                     .attr("x", function (d) {

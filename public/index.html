@@ -31,7 +31,7 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!--My Script-->
-    <script type="text/javascript" src="jscolor.js" defer></script>
+    <script type="text/javascript" src="jscolor.js"></script>
     <script type="text/javascript" src="script.js" defer></script>
 </head>
 
@@ -162,7 +162,18 @@
                 <option value="count" disabled>Count</option>
             </select>
         </div>
+        <div style="display: flex;">
+            <label  for="changeColorSwitch">Change Colors</label>
+            <div class="form-check form-switch" style="padding-left: 5%;">
+                <input class="form-check-input" type="checkbox" id="changeColorSwitch">
+            </div>
 
+        </div>
+        <br />
+        <div style="display: none; " id="colorChangerRow">
+
+        </div>
+        <br />
 
         <!-- <button id="greyColorScheme" class="btn btn-primary" onclick="changeColorScheme('grey')">Show ITR's and Barcodes</button> -->
     </div>
