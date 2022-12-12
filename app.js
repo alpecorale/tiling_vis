@@ -130,7 +130,7 @@ app.post('/downloadRawData', RawData.any('files'), async (req, res, next) => {
         res.end();
 
         // use exec() or cron job to move file around cluster
-        cleanData(req.files[0].path, req.body.format)
+        cleanData(req.files[0].path, req.body.format, req.body.clustering, req.body.density)
 
     }
     
@@ -138,7 +138,7 @@ app.post('/downloadRawData', RawData.any('files'), async (req, res, next) => {
 
 })
 
-async function cleanData(path, format) {
+async function cleanData(path, format, clustering, clusteringDensity) {
 
     console.log('inside clean data')
     // transform file to desired JS input type
