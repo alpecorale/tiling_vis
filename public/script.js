@@ -32,7 +32,7 @@ function updateColor(ele, key) {
 
 // opens and closes color switch div
 document.getElementById('changeColorSwitch').addEventListener('change', () => {
-    if (document.getElementById('colorChangerRow').style.display === 'flex'){
+    if (document.getElementById('colorChangerRow').style.display === 'flex') {
         document.getElementById('colorChangerRow').style.display = 'none'
     } else {
         document.getElementById('colorChangerRow').style.display = 'flex'
@@ -41,7 +41,7 @@ document.getElementById('changeColorSwitch').addEventListener('change', () => {
 
 // opens and closes clustering density
 document.getElementById('clusteringSwitch').addEventListener('change', () => {
-    if (document.getElementById('clusteringDiv').style.display === 'flex'){
+    if (document.getElementById('clusteringDiv').style.display === 'flex') {
         document.getElementById('clusteringDiv').style.display = 'none'
     } else {
         document.getElementById('clusteringDiv').style.display = 'flex'
@@ -170,7 +170,7 @@ async function loadVis() {
                 d.num_tiles = tileArr.length
                 d.local_max = localMaxNum
                 d.count_each = count_each_obj
-                d.total_length = localMaxNum
+                d.total_length = localMaxNum // ok
 
 
                 // get read coverage
@@ -179,7 +179,7 @@ async function loadVis() {
                     let dif = x.end - x.start
                     tileCov += dif
                 })
-
+                d.local_max = localMaxNum
                 // get maxReadNum 
                 if (localMaxNum > maxReadNum) {
                     maxReadNum = localMaxNum
@@ -192,67 +192,15 @@ async function loadVis() {
                 d.readID = i
             }
 
-            
-            // if (whichFormat === 'parham') { // parhams data
-            //     d.count = d.Length // length not count
-            //     d.total_length = d.Length
-            //     d.dist = d.Length / 100000 // distribution really doesnt matter
-            //     let stringArr = d.String.split(':')
-            //     let positionsArr = d.Positions.split(":")
-            //     let tileArr = []
-            //     let localMaxNum = 0
-            //     let count_each_obj = {}
-            //     stringArr.forEach((v, vi) => {
-            //         let obj = { 'name': '', 'start': 0, 'end': 0, 'strand': '+', 'size': 0 }
-
-            //         // clean names of + and other junk
-            //         let cleanName = v.slice(1)
-            //         cleanName = cleanName.split('+').join('_')
-
-            //         obj.name = cleanName // maybe we should join name and strand tg and set up color map to do different shades for each
-            //         obj.start = positionsArr[vi].split('-')[0]
-            //         obj.end = positionsArr[vi].split('-')[1]
-            //         obj.strand = v.slice(0, 1)
-            //         obj.size = obj.end - obj.start
-            //         tileArr.push(obj)
-
-            //         if (parseInt(obj.end) > localMaxNum) { localMaxNum = parseInt(obj.end) }
-
-            //         // handle count each object
-            //         if (cleanName in count_each_obj) {
-            //             count_each_obj[cleanName] = count_each_obj[cleanName] + 1
-            //         } else {
-            //             count_each_obj[cleanName] = 1
-            //         }
-            //     })
-
-            //     d.tiles = tileArr
-            //     d.num_tiles = tileArr.length
-            //     d.local_max = localMaxNum
-            //     d.count_each = count_each_obj
-
-            //     // get read coverage
-            //     let tileCov = 0
-            //     tileArr.forEach((x) => {
-            //         let dif = x.end - x.start
-            //         tileCov += dif
-            //     })
-
-            //     // get maxReadNum 
-            //     if (localMaxNum > maxReadNum) {
-            //         maxReadNum = localMaxNum
-            //     }
-
-            //     tileCov = (tileCov / maxReadNum) * 100 // lol compute after maxReadNum or get Infinity
-            //     tileCov = Math.round(tileCov * 100) / 100
-            //     d.coverage = tileCov
-            //     d.readID = d.ReadID
-            // }
-
 
             if (whichFormat === 'gustavo' || whichFormat === 'parham') {
                 // gustavo data
-                d.count = parseInt(d.Length) // length not count
+                if (d.Count) {
+                    d.count = d.Count
+                } else {
+                    d.count = -1 // count unknown
+                }
+
                 d.total_length = parseInt(d.Length)
                 d.dist = parseInt(d.Length) / 100000 // distribution really doesnt matter
                 let stringArr = d.String.split(':')
@@ -411,9 +359,15 @@ async function loadVis() {
                     })
                     break;
 
+                case 'countLow':
+                    data.sort((a, b) => {
+                        return d3.ascending(a.count, b.count)
+                    })
+                    break;
+
                 case 'length':
                     data.sort((a, b) => {
-                        return d3.descending(a.total_length, b.total_length)
+                        return d3.descending(a.local_max, b.local_max) // total_length is unreliable 
                     })
                     break;
 
@@ -425,7 +379,7 @@ async function loadVis() {
 
                 case 'lengthLow':
                     data.sort((a, b) => {
-                        return d3.ascending(a.total_length, b.total_length)
+                        return d3.ascending(a.local_max, b.local_max)
                     })
                     break;
 
@@ -438,7 +392,7 @@ async function loadVis() {
                 default:
                     // pre sort with length to look pretty
                     data.sort((a, b) => {
-                        return d3.descending(a.total_length, b.total_length)
+                        return d3.descending(a.local_max, b.local_max)
                     })
 
                     // sort by selected object count
@@ -488,6 +442,7 @@ async function loadVis() {
                             "size": x.size
                         },
                         "coverage": d.coverage,
+                        "total_length": d.total_length, // unreliable
                         "local_max": d.local_max,
                         "count_each": d.count_each
                     }
@@ -552,6 +507,8 @@ async function loadVis() {
             { "value": "lengthLow", "text": "Length (L->H)" },
             { "value": "coverage", "text": "Coverage (H->L)" },
             { "value": "coverageLow", "text": "Coverage (L->H)" },
+            { "value": "count", "text": "Count Motif (H->L)" },
+            { "value": "countLow", "text": "Count Motif (L->H)" },
         ]
         preExistingOptions.forEach(key => {
             let opt2 = document.createElement("option");
@@ -737,7 +694,7 @@ async function loadVis() {
                     d3.selectAll(".class" + d + "Strand").transition().style("opacity", currentOpacity == 1 ? 0 : 1)
                 })
 
-                
+
             // add button in legend // cant but can add another shape and give it .on("click") event
             document.getElementById("colorChangerRow").innerHTML = ""
             jscolor.install()
@@ -750,14 +707,14 @@ async function loadVis() {
                 })
                 .attr('data-jscolor', (d) => {
                     let currentColor = d3.selectAll((".class" + d)).style("fill")
-                    return `{value:'` + currentColor +  `',` + `onChange: 'updateColor(this, "class` + d + `")'` + `}`
+                    return `{value:'` + currentColor + `',` + `onChange: 'updateColor(this, "class` + d + `")'` + `}`
                     // d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
                 })
-                
 
-                jscolor.install(); // needed to intialize color buttons
 
-                
+            jscolor.install(); // needed to intialize color buttons
+
+
 
             /*
             *
@@ -797,7 +754,10 @@ async function loadVis() {
                         toolTipMessage += "Read ID: " + d.read_ID + "<br/>"
                         toolTipMessage += "Category: " + d.tile.name.split('bug').join('/').split('BUG').join('|') + "<br/>" // this is dumb
                         toolTipMessage += "Strandedness: " + d.tile.strand + "<br/>"
-                        toolTipMessage += "Length: " + d.count + " <br/>"
+                        toolTipMessage += "Length: " + d.local_max + " <br/>" // total_length is unreliable
+                        if (d.count !== -1) {
+                            toolTipMessage += "Count (Motif): " + d.count + " <br/>"
+                        }
                         toolTipMessage += "Coverage: " + d.coverage + "%" + "<br/ >"
                         toolTipMessage += "[Start-End]: [" + d.tile.start + '-' + d.tile.end + ']' + "<br/ >"
                         toolTipMessage += "Size: " + d.tile.size + "nt"

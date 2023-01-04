@@ -10,7 +10,7 @@ if format == 'parham':
     # 'skiprows' skips the header # 'nrows=50' takes only first 50 rows
     # df = pd.read_csv('raw_data/Final_BC_Vectors_PacBio_Annotated_PH_2.csv', nrows=150)
     # df = pd.read_csv('raw_data/' + input_file_path, names = ["ReadID", "Length", "Positions", "String"], skiprows=1, nrows=50)
-    df = pd.read_csv('raw_data/' + input_file_path)
+    df = pd.read_csv('raw_data/' + input_file_path) #, usecols=["ReadID", "Length", "Positions", "String","Count"]
 
     result = df.to_json(orient="records")
     parsed = json.loads(result)
