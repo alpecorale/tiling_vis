@@ -14,6 +14,15 @@ jscolor.presets.default = {
 
 let groupByFirst = []
 let allCleanOptions = []
+let gradientCheck = false
+let masterColorList = ["grey", "blue", "orange", "red", "green", "black", "purple", "brown", "pink", "gold", "turquoise"]
+
+// let masterColorList = ['url(#svgGradient)', 'url(#svgGradient2)', "#ff7f0e", "#d62728", "#2ca02c", 'black', "#9467bd", "#8c564b", "#e377c2", "#bcbd22", "#17becf"]
+
+let gradientColorListFwd = ["url(#greyGradientFwd)", "url(#blueGradientFwd)", "url(#orangeGradientFwd)", "url(#redGradientFwd)", "url(#greenGradientFwd)", "url(#blackGradientFwd)", "url(#purpleGradientFwd)", "url(#brownGradientFwd)", "url(#pinkGradientFwd)", "url(#goldGradientFwd)", "url(#turquoiseGradientFwd)"]
+let gradientColorListRev = ["url(#greyGradientRev)", "url(#blueGradientRev)", "url(#orangeGradientRev)", "url(#redGradientRev)", "url(#greenGradientRev)", "url(#blackGradientrev)", "url(#purpleGradientRev)", "url(#brownGradientRev)", "url(#pinkGradientRev)", "url(#goldGradientRev)", "url(#turquoiseGradientRev)"]
+// let masterColorList = ['url(#svgGradient)', "#1f77b4", "#ff7f0e", "#d62728", "#2ca02c", 'black', "#9467bd", "#8c564b", "#e377c2", "#bcbd22", "#17becf"]
+let updateColorList = []
 
 function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -28,6 +37,26 @@ function updateColor(ele, key) {
     Array.from(els).forEach((el) => {
         el.style.fill = newColor
     })
+
+    // add to update color list so I can reapply changes at end
+    if (updateColorList.length === 0) {
+        updateColorList.push({ key: key, color: newColor })
+        return
+    }
+
+    let hasVal = false
+    updateColorList.forEach(x => {
+        if (x.key === key) {
+            x.color = newColor
+            hasVal = true
+        }
+    })
+
+    if (hasVal === false) {
+        updateColorList.push({ key: key, color: newColor })
+    }
+
+
 }
 
 // opens and closes color switch div
@@ -106,6 +135,8 @@ async function loadFile() {
 
 
 let currentNumShowing = 50
+let currentPage = 0
+let maxPages = 0
 
 async function loadVis() {
 
@@ -113,6 +144,7 @@ async function loadVis() {
     // clear vis before loading new viz
     document.getElementById('my_dataviz').innerHTML = ''
     document.getElementById('my_dataviz_legend').innerHTML = ''
+    document.getElementById('my_mini_dataviz').innerHTML = ''
     document.getElementById('visOptions').style.display = 'block'
 
     // d3.json('test_tiles.json').then((data) => { // bobs data
@@ -120,15 +152,15 @@ async function loadVis() {
     const pick = document.getElementById('pickDataset').value
 
     d3.json('clean_data/' + pick + '.json').then((data) => { // parhams data
+        console.log(data)
 
-        // temp stuff for "igv style" barchart
-        // let maxReadNum = 2806 // for tiles.json
-        // let maxReadNum = 3500 // for test_tiles.json // bob
+        maxPages = Math.ceil(data.length / currentNumShowing)
+        document.getElementById('pageText').innerText = '1 of ' + maxPages
+
         let maxReadNum = 0 // max read num is generated dynamically now
 
         let data2 = []
 
-        // data = data.slice(0, 101)
         const whichFormat = document.getElementById('fileFormatLoad').value
 
         // fix tiles section to be array of objects
@@ -292,24 +324,58 @@ async function loadVis() {
                 case '-1':
                     tempData = data
                     currentNumShowing = -1
+                    maxPages = 1
+                    currentPage = 0
+                    d3.select('#pageText').text("1 of " + maxPages)
                     break;
                 case '20':
                     tempData = data.slice(0, 20)
                     currentNumShowing = 20
+                    currentPage = 0
+                    maxPages = Math.ceil(data.length / 20)
+                    d3.select('#pageText').text("1 of " + maxPages)
                     break;
 
                 case '50':
                     tempData = data.slice(0, 50)
                     currentNumShowing = 50
+                    currentPage = 0
+                    maxPages = Math.ceil(data.length / 50)
+                    d3.select('#pageText').text("1 of " + maxPages)
                     break;
                 case '100':
                     tempData = data.slice(0, 100)
                     currentNumShowing = 100
+                    currentPage = 0
+                    maxPages = Math.ceil(data.length / 100)
+                    d3.select('#pageText').text("1 of " + maxPages)
+                    break;
+                case '200':
+                    tempData = data.slice(0, 200)
+                    currentNumShowing = 200
+                    currentPage = 0
+                    maxPages = Math.ceil(data.length / 200)
+                    d3.select('#pageText').text("1 of " + maxPages)
+                    break;
+                case '300':
+                    tempData = data.slice(0, 300)
+                    currentNumShowing = 300
+                    currentPage = 0
+                    maxPages = Math.ceil(data.length / 300)
+                    d3.select('#pageText').text("1 of " + maxPages)
+                    break;
+                case '500':
+                    tempData = data.slice(0, 500)
+                    currentNumShowing = 500
+                    currentPage = 0
+                    maxPages = Math.ceil(data.length / 500)
+                    d3.select('#pageText').text("1 of " + maxPages)
                     break;
             }
             data2 = makeData2(tempData)
             d3.select("#my_dataviz").html("") // empty old and make new chart
             d3.select("#my_dataviz_legend").html("")
+            d3.select("#my_mini_dataviz").html("")
             makePlot(tempData, data2)
         })
 
@@ -320,7 +386,10 @@ async function loadVis() {
             data2 = makeData2(data.slice(0, currentNumShowing))
             d3.select("#my_dataviz").html("") // empty old and make new chart
             d3.select('#my_dataviz_legend').html("")
+            d3.select("#my_mini_dataviz").html("")
             makePlot(data.slice(0, currentNumShowing), data2)
+            currentPage = 0
+            d3.select('#pageText').text("1 of " + maxPages)
         })
 
         let brushCheck = true
@@ -329,7 +398,10 @@ async function loadVis() {
             data2 = makeData2(data.slice(0, currentNumShowing))
             d3.select("#my_dataviz").html("") // empty old and make new chart
             d3.select('#my_dataviz_legend').html("")
+            d3.select("#my_mini_dataviz").html("")
             makePlot(data.slice(0, currentNumShowing), data2)
+            currentPage = 0
+            d3.select('#pageText').text("1 of " + maxPages)
         })
 
         // show count for Each Type
@@ -339,10 +411,52 @@ async function loadVis() {
             data2 = makeData2(data.slice(0, currentNumShowing))
             d3.select("#my_dataviz").html("")
             d3.select('#my_dataviz_legend').html("")
+            d3.select("#my_mini_dataviz").html("")
             makePlot(data.slice(0, currentNumShowing), data2)
+            currentPage = 0
+            d3.select('#pageText').text("1 of " + maxPages)
         })
 
+        // page left / right
+        d3.select('#pageLeft').on("click", async function () {
+            if (currentPage > 0) {
+                currentPage--
+            } else {
+                return
+            }
+            d3.select("#pageText").text((currentPage + 1) + " of " + maxPages)
+            data2 = makeData2(data.slice(currentNumShowing * currentPage, (currentNumShowing * currentPage) + currentNumShowing))
+            d3.select("#my_dataviz").html("")
+            d3.select('#my_dataviz_legend').html("")
+            d3.select("#my_mini_dataviz").html("")
+            makePlot(data.slice(currentNumShowing * currentPage, (currentNumShowing * currentPage) + currentNumShowing), data2)
+        })
 
+        d3.select('#pageRight').on("click", async function () {
+            if (currentPage < maxPages) {
+                currentPage++
+            } else {
+                return
+            }
+            d3.select("#pageText").text((currentPage + 1) + " of " + maxPages)
+            data2 = makeData2(data.slice(currentNumShowing * currentPage, (currentNumShowing * currentPage) + currentNumShowing))
+            d3.select("#my_dataviz").html("")
+            d3.select('#my_dataviz_legend').html("")
+            d3.select("#my_mini_dataviz").html("")
+            makePlot(data.slice(currentNumShowing * currentPage, (currentNumShowing * currentPage) + currentNumShowing), data2)
+        })
+
+        // toggle gradient
+        d3.select('#gradientCheckbox').on("change", async function () {
+            gradientCheck = !gradientCheck
+            data2 = makeData2(data.slice(0, currentNumShowing))
+            d3.select("#my_dataviz").html("")
+            d3.select('#my_dataviz_legend').html("")
+            d3.select("#my_mini_dataviz").html("")
+            makePlot(data.slice(0, currentNumShowing), data2)
+            currentPage = 0
+            d3.select('#pageText').text("1 of " + maxPages)
+        })
 
         // sort data when needed 
         d3.select('#sortBySelect').on("change", async function () {
@@ -413,9 +527,15 @@ async function loadVis() {
                     break;
 
             }
+
+            // reset page on sort
+            currentPage = 0
+            d3.select('#pageText').text("1 of " + maxPages)
+
             data2 = makeData2(data.slice(0, currentNumShowing))
             d3.select("#my_dataviz").html("")
             d3.select('#my_dataviz_legend').html("")
+            d3.select("#my_mini_dataviz").html("")
             makePlot(data.slice(0, currentNumShowing), data2)
         })
 
@@ -531,12 +651,17 @@ async function loadVis() {
 
         function makePlot(inputData, inputData2) {
 
+            // reset page on plot reload ?
+            // currentPage = 0
+            // d3.select('#pageText').text("1 of " + maxPages)
+
             console.log('Data 2 inside makePlot: ', inputData2)
 
             // set the dimensions and margins of the graph
             var margin = { top: 20, right: 30, bottom: 40, left: 90 },
                 width = (window.innerWidth * .75) - margin.left - margin.right,
-                height = (window.innerHeight * .75) - margin.top - margin.bottom;
+                height = (window.innerHeight * .75) - margin.top - margin.bottom,
+                height2 = (window.innerHeight * .25) - margin.top - margin.bottom;
 
             // append the svg object to the body of the page
             var svg = d3.select("#my_dataviz")
@@ -544,14 +669,23 @@ async function loadVis() {
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
                 .append("g")
+                .style('cursor', 'pointer')
                 .attr("transform",
                     "translate(" + margin.left + "," + margin.top + ")")
 
             // append the svg object to the body of the page
             var svgLegend = d3.select("#my_dataviz_legend")
                 .append("svg")
+                .attr("width", width / 3 + margin.left + margin.right)
+                .attr("height", height * .75 + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")")
+
+            var svgMini = d3.select("#my_mini_dataviz")
+                .append("svg")
                 .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
+                .attr("height", height2 + margin.top + margin.bottom)
                 .append("g")
                 .attr("transform",
                     "translate(" + margin.left + "," + margin.top + ")")
@@ -614,6 +748,20 @@ async function loadVis() {
                 .style("text-anchor", "end")
 
 
+            var x_mini = d3.scaleBand()
+                .domain(keys)
+                .range([0, width]);
+
+
+            let newHeight = height + height2
+
+            let xAxis_mini = svgMini.append("g")
+                .attr("transform", "translate(0," + height2 + ")")
+                .call(d3.axisBottom(x_mini))
+
+            xAxis_mini.selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
 
 
             // Y axis
@@ -626,13 +774,97 @@ async function loadVis() {
                 .call(d3.axisLeft(y))
 
 
+
+
             // color palette = one color per type
             var color = d3.scaleOrdinal()
                 .domain(keys)
-                // ['Backbone', 'hPAH', 'RNA', 'LNA', 'BC_SV40', 'ITR', 'SA_2A', '5_MCS', '3_MCS']
+                .range(masterColorList) // category 10 but grey is moved and black is added so support for up to 11
 
-                .range(['grey', "#1f77b4", "#ff7f0e", "#d62728", "#2ca02c", 'black', "#9467bd", "#8c564b", "#e377c2", "#bcbd22", "#17becf"]) // category 10 but grey is moved and black is added so support for up to 11
-            // .range(['#e41a1c','url(#hash4_4)', '#4daf4a', '#A020F0', '#FFFF00'])
+            var colorGradientFwd = d3.scaleOrdinal()
+                .domain(keys)
+                .range(gradientColorListFwd)
+
+            var colorGradientRev = d3.scaleOrdinal()
+                .domain(keys)
+                .range(gradientColorListRev)
+
+
+
+
+            /*
+            *
+            *   MINIBar
+            * 
+            */
+
+            // make special mini data
+            let mini_data = []
+            let maxTiles = 0
+            // let mini_data = [{ readID: "1", x: "hPAH", count: 3 }]
+            console.log("inputData", inputData)
+            inputData.forEach(x => {
+                Object.keys(x.count_each).forEach(y => {
+                    let obj = { readID: '', x: '', count: 0 }
+                    obj.readID = x.readID
+                    obj.x = y
+                    obj.count = x.count_each[y]
+                    if (x.count_each[y] > maxTiles) {
+                        maxTiles = x.count_each[y]
+                    }
+
+                    mini_data.push(obj)
+                })
+            })
+
+            // get max number of tiles from a single input
+
+
+            let y_mini = d3.scaleLinear()
+                .range([0, height2])
+                .domain([maxTiles, 0])
+
+
+
+            svgMini.append("g").call(d3.axisLeft(y_mini))
+
+            svgMini.selectAll("myRectMini")
+                .data(mini_data)
+                .enter()
+                .append("rect")
+                .attr("class", (d) => {
+
+                    let cleanReadId = d.readID.replace(/[^a-zA-Z0-9]/g, '')
+                    return "mini_class" + cleanReadId + " class" + d.x
+                })
+                .attr("x", function (d) { return x_mini(d.x) }) // have the x value start at the start of first tile
+                .attr("y", function (d, i) { return y_mini(d.count); })
+                .attr("height", function (d) { return y_mini(0) - y_mini(d.count); }) // width is end - start
+                .attr("width", x_mini.bandwidth())
+                .attr("fill", function (d) { return color(d.x) })
+                .attr("stroke", "black")
+                .style("display", "none")
+
+
+
+            svgMini.selectAll("tileCountText")
+                .data(mini_data)
+                .enter()
+                .append("text")
+                .attr("class", (d) => {
+
+                    let cleanReadId = d.readID.replace(/[^a-zA-Z0-9]/g, '')
+                    return "mini_class" + cleanReadId // + " class" + d.x // add if want change text color
+                })
+                .attr("x", function (d) { return x_mini(d.x) + (x_mini.bandwidth()/2) }) // have the x value start at the start of first tile
+                .attr("y", function (d, i) { return y_mini(d.count + 4); })
+                .text(function (d) { return "(" + d.count + ")"; })
+                .attr("text-anchor", "middle")
+                .style("alignment-baseline", "middle")
+                .style("display", "none")
+
+
+
 
             /*
             *
@@ -707,6 +939,15 @@ async function loadVis() {
                 })
                 .attr('data-jscolor', (d) => {
                     let currentColor = d3.selectAll((".class" + d)).style("fill")
+
+                    function standardize_color(str) {
+                        var ctx = document.createElement('canvas').getContext('2d');
+                        ctx.fillStyle = str;
+                        return ctx.fillStyle;
+                    }
+
+                    currentColor = standardize_color(currentColor)
+
                     return `{value:'` + currentColor + `',` + `onChange: 'updateColor(this, "class` + d + `")'` + `}`
                     // d3.selectAll(".class" + d).transition().style("fill", currentColor !== 'rgb(211, 211, 211)' ? 'lightgrey' : color(d))
                 })
@@ -739,12 +980,32 @@ async function loadVis() {
                 .attr("height", y.bandwidth())
                 // .attr("fill", "url(#diagonal-stripe-2)") // might need to make this a function and add colors to different <svg> ids and set that as the range
                 .attr("fill", function (d) {
+
                     return color(d.tile.name)
+
+                    // if (gradientCheck) {
+                    //     if (d.tile.strand === '+' | d.tile.strand === 'f') {
+                    //         return colorGradientFwd(d.tile.name)
+                    //     } else {
+                    //         return colorGradientRev(d.tile.name)
+                    //     }
+
+                    // } else {
+                    //     // normal result
+                    //     return color(d.tile.name)
+                    // }
+
 
                 })
                 .attr("stroke", "black")
                 .on("mouseover", function (event, d) {
+
+                    let cleanReadId = d.read_ID.replace(/[^a-zA-Z0-9]/g, '')
+                    let locclassName = '.mini_class' + cleanReadId
+                    d3.selectAll(locclassName).style("display", "block")
+                    
                     if (hoverCheck) { return }
+
                     tooltip.transition()
                         .duration(200)
                         .style("opacity", .9);
@@ -754,12 +1015,12 @@ async function loadVis() {
                         toolTipMessage += "Read ID: " + d.read_ID + "<br/>"
                         toolTipMessage += "Category: " + d.tile.name.split('bug').join('/').split('BUG').join('|') + "<br/>" // this is dumb
                         toolTipMessage += "Strandedness: " + d.tile.strand + "<br/>"
-                        toolTipMessage += "Length: " + d.local_max + " <br/>" // total_length is unreliable
+                        toolTipMessage += "Length: " + d.local_max + "    " // total_length is unreliable
+                        toolTipMessage += "Coverage: " + d.coverage + "%" + "<br/ >"
                         if (d.count !== -1) {
                             toolTipMessage += "Count (Motif): " + d.count + " <br/>"
                         }
-                        toolTipMessage += "Coverage: " + d.coverage + "%" + "<br/ >"
-                        toolTipMessage += "[Start-End]: [" + d.tile.start + '-' + d.tile.end + ']' + "<br/ >"
+                        toolTipMessage += "[Start-End]: [" + d.tile.start + '-' + d.tile.end + ']    '
                         toolTipMessage += "Size: " + d.tile.size + "nt"
 
                         return toolTipMessage
@@ -767,11 +1028,18 @@ async function loadVis() {
                         .style("top", (event.pageY) + "px")
                         .style("left", (event.pageX + 80) + "px");
                 })
-                .on("mouseout", function (d) {
+                .on("mouseout", function (event, d) {
+
+                    let cleanReadId = d.read_ID.replace(/[^a-zA-Z0-9]/g, '')
+                    let locclassName = '.mini_class' + cleanReadId
+                    d3.selectAll(locclassName).style("display", "none")
+
                     if (hoverCheck) { return }
+                    
                     tooltip.transition()
                         .duration(500)
                         .style("opacity", 0);
+
                 });
 
             if (brushCheck) {
@@ -813,8 +1081,14 @@ async function loadVis() {
                         case 20:
                             return "15px"
                         case 50:
-                            return "9px"
+                            return "10px"
                         case 100:
+                            return "5px"
+                        case 200:
+                            return "5px"
+                        case 300:
+                            return "5px"
+                        case 500:
                             return "5px"
                     }
                 })
@@ -850,8 +1124,14 @@ async function loadVis() {
                         case 20:
                             return "15px"
                         case 50:
-                            return "9px"
+                            return "10px"
                         case 100:
+                            return "5px"
+                        case 200:
+                            return "5px"
+                        case 300:
+                            return "5px"
+                        case 500:
                             return "5px"
                     }
                 })
@@ -902,10 +1182,20 @@ async function loadVis() {
 
             }
 
+            // reupdate colors
+            if (updateColorList.length === 0) { return }
+            updateColorList.forEach(x => {
+                // turn all elements of key class into newColor
+                const els = document.getElementsByClassName(x.key)
 
-        }
+                Array.from(els).forEach((el) => {
+                    el.style.fill = x.color
+                })
+            })
+
+
+        } // end of makePlot
         makePlot(data.slice(0, currentNumShowing), data2)
-
 
 
     })

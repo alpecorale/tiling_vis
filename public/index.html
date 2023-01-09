@@ -32,6 +32,7 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!--My Script-->
     <script type="text/javascript" src="jscolor.js"></script>
+    <script type="text/javascript" src="gradient.js" defer></script>
     <script type="text/javascript" src="script.js" defer></script>
 </head>
 
@@ -68,52 +69,48 @@
 
     <br />
     <div style="padding-left: 5%;">
+        <div id="upload" style="display: none;">
+            <div class="mb-3 row">
+                <label class="col-sm-2 col-form-label" for="inputFile">Tiling Data Input:</label>
+                <div class="col-sm-4" style="display: flex;">
+                    <input class="form-control" type="file" id="inputFile">
 
-        <div class="mb-3 row">
-            <label class="col-sm-2 col-form-label" for="inputFile">Tiling Data Input:</label>
-            <div class="col-sm-4" style="display: flex;">
-                <input class="form-control" type="file" id="inputFile">
+                </div>
+                <label class="col-sm-2 col-form-label" for="fileFormat">File Format:</label>
+                <div class="col-sm-2" style="display: flex;">
+                    <select class="form-control" id="fileFormat">
+                        <option value="gustavo">Gustavo's</option>
+                        <option value="bob">Bob's</option>
+                        <option value="parham">Parham's</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex;">
+                <label for="clusteringSwitch">Perform Clustering on Dataset</label>
+                <div class="form-check form-switch" style="padding-left: 5%;">
+                    <input class="form-check-input" type="checkbox" id="clusteringSwitch">
+                </div>
 
             </div>
-            <label class="col-sm-2 col-form-label" for="fileFormat">File Format:</label>
-            <div class="col-sm-2" style="display: flex;">
-                <select class="form-control" id="fileFormat">
-                    <option value="gustavo">Gustavo's</option>
-                    <option value="bob">Bob's</option>
-                    <option value="parham">Parham's</option>
-                </select>
+            <br />
+            <div id="clusteringDiv" style="display: none;">
+                <label style="padding-right: 10px;" for="clusteringDensity">Clustering Density (nt)</label>
+                <input type="number" id="clusteringDensity" value="0">
+            </div>
+            <br />
+
+            <div class="mb-3 row">
+                <div class="col-sm-3" style="display: flex;">
+                    <button id="loadData" class="btn btn-primary" onclick="loadFile()">Upload New Data Set</button>
+                </div>
+                <div class="col-sm-6" style="display: flex;">
+                    <p style="padding-right: 5px;">Please give 3-5mins to let larger data sets be uploaded. </p>
+                    <a href="/info">Additional Info</a>
+                </div>
+
             </div>
         </div>
-
-        <div style="display: flex;">
-            <label for="clusteringSwitch">Perform Clustering on Dataset</label>
-            <div class="form-check form-switch" style="padding-left: 5%;">
-                <input class="form-check-input" type="checkbox" id="clusteringSwitch">
-            </div>
-           
-        </div>
-        <br />
-        <div id="clusteringDiv" style="display: none;">
-            <label style="padding-right: 10px;" for="clusteringDensity">Clustering Density (nt)</label>
-            <input type="number" id="clusteringDensity" value="0">
-        </div>
-        <br />
-
-        <div class="mb-3 row">
-            <div class="col-sm-3" style="display: flex;">
-                <button id="loadData" class="btn btn-primary" onclick="loadFile()">Upload New Data Set</button>
-            </div>
-            <div class="col-sm-6" style="display: flex;">
-                <p style="padding-right: 5px;">Please give 3-5mins to let larger data sets be uploaded. </p>
-                <a href="/info">Additional Info</a>
-            </div>
-
-            <!-- Color Picker Button -->
-            <!-- <button data-jscolor="{value:'rgba(51,153,255,1)'}" style="width: 50px;"></button> -->
-
-
-        </div>
-
 
         <div class="mb-3 row">
             <label class="col-sm-2 col-form-label" for="pickDataset">Pick Dataset:</label>
@@ -153,6 +150,9 @@
                 <option value="20">20</option>
                 <option value="50" selected>50</option>
                 <option value="100">100</option>
+                <option value="200">200</option>
+                <option value="300">300</option>
+                <option value="500">500</option>
             </select>
             <div class="col-sm-1"></div>
             <p class="col-sm-2">Turn off hover box: </p>
@@ -161,6 +161,21 @@
             <p class="col-sm-2">Toggle Zoom: </p>
             <input type="checkbox" class="col-sm-1 form-check-input" checked id="brushCheckbox">
         </div>
+        <!--Pagination-->
+        <div style="display: flex;">
+            <p>Page:</p>
+            <div style="display: flex; padding-left: 10px;">
+                <button class="btn btn-primary" id="pageLeft">Left<i class="bi bi-chevron-double-left"></i></button>
+                <p id="pageText" style="padding-left: 10px; padding-right: 10px;">X of X</p>
+                <button class="btn btn-primary" id="pageRight">Right<i class="bi bi-chevron-double-right"></i></button>
+            </div>
+        </div>
+
+        <!-- <div class="mb-3 row">
+            <p class="col-sm-2">Toggle Color Gradient: </p>
+            <input type="checkbox" class="col-sm-1 form-check-input" id="gradientCheckbox">
+        </div> -->
+
         <div class="mb-3 row">
             <p class="col-sm-2">Show Count for: </p>
             <select class="col-sm-2" id="countWhich">
@@ -197,7 +212,12 @@
     <!-- Create a div where the graph will take place -->
     <div class="mb-3 row">
         <div id="my_dataviz" class="col-md-9"></div>
-        <div id="my_dataviz_legend" class="col-md-3"></div>
+        <div class="col-md-3">
+            <div id="my_dataviz_legend"></div>
+        </div>
+    </div>
+    <div class="mb-3 row">
+        <div id="my_mini_dataviz" class="col-md-9"></div>
     </div>
     <br />
     <br />
