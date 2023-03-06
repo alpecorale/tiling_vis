@@ -1,6 +1,7 @@
 const http = require('http');
 
-const hostname = 'srv-hpc01';
+// const hostname = 'srv-hpc01';
+const hostname = '10.72.20.80';
 // const port = 3002;
 const port = 3451;
 
@@ -183,7 +184,7 @@ async function cleanData(path, format, clustering, clusteringDensity) {
 app.get('/testServerNav', async (req, res) => {
 
 
-    readFilePromise('/grid/home/nbourgeois/igv_data/summary/NT-10_summary.json')
+    readFilePromise('/HPC/SAN-HPEMSA02/home/nbourgeois/igv_data/summary/NT-10_summary.json')
         .then(data => {
             res.send(data)
         })
